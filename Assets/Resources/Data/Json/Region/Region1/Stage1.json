@@ -1,0 +1,57 @@
+{
+	"xSize": 5,
+	"ySize": 10,
+	"nodes": [
+		{
+			"x": 3,
+			"y": 1,
+			"nodeType": "Start"
+		},
+		{
+			"x": 3,
+			"y": 2,
+			"nodeType": "Normal"
+		},
+		{
+			"x": 2,
+			"y": 2,
+			"nodeType": "Event"
+		},
+		{
+			"x": 4,
+			"y": 2,
+			"nodeType": "Normal"
+		},
+		{
+			"x": 4,
+			"y": 3,
+			"nodeType": "Boss"
+		}
+	],
+	"connections": [
+		{
+			"fromX": 3,
+			"fromY": 1,
+			"toX": 3,
+			"toY": 2
+		},
+		{
+			"fromX": 3,
+			"fromY": 2,
+			"toX": 2,
+			"toY": 2
+		},
+		{
+			"fromX": 3,
+			"fromY": 2,
+			"toX": 4,
+			"toY": 2
+		},
+		{
+			"fromX": 4,
+			"fromY": 2,
+			"toX": 4,
+			"toY": 3
+		}
+	]
+}
