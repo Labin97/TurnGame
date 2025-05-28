@@ -17,7 +17,7 @@ public enum StageNodeType
 }
 
 [Serializable]
-public class StageNode
+public class JsonStageNode
 {
     public int x;
     public int y;
@@ -26,7 +26,7 @@ public class StageNode
 }
 
 [Serializable]
-public class StageNodeConnection
+public class JsonStageNodeConnection
 {
     public int fromX;
     public int fromY;
@@ -35,10 +35,10 @@ public class StageNodeConnection
 }
 
 [Serializable]
-public class StageInfo
+public class JsonStageInfo
 {
     public int xSize;
     public int ySize;
-    public StageNode[] nodes;
-    public StageNodeConnection[] connections;
+    public JsonStageNode[] nodes;
+    public JsonStageNodeConnection[] connections;
 }
