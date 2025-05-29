@@ -16,6 +16,7 @@ public enum StageNodeType
     Reward,
     Empty,
     End,
+    boss,
 }
 
 [Serializable]
@@ -25,8 +26,6 @@ public class JsonStageNode
     public int y;
     [JsonConverter(typeof(StringEnumConverter))]
     public StageNodeType nodeType;
-
-    public bool isBoss; // 보스 여부
 }
 
 [Serializable]
