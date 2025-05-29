@@ -16,7 +16,7 @@ public enum StageNodeType
     Reward,
     Empty,
     End,
-    boss,
+    Boss,
 }
 
 [Serializable]
