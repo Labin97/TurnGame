@@ -1,57 +1,264 @@
 {
-	"xSize": 5,
-	"ySize": 10,
-	"nodes": [
-		{
-			"x": 3,
-			"y": 1,
-			"nodeType": "Start"
-		},
-		{
-			"x": 3,
-			"y": 2,
-			"nodeType": "Normal"
-		},
-		{
-			"x": 2,
-			"y": 2,
-			"nodeType": "Event"
-		},
-		{
-			"x": 4,
-			"y": 2,
-			"nodeType": "Normal"
-		},
-		{
-			"x": 4,
-			"y": 3,
-			"nodeType": "Boss"
-		}
-	],
-	"connections": [
-		{
-			"fromX": 3,
-			"fromY": 1,
-			"toX": 3,
-			"toY": 2
-		},
-		{
-			"fromX": 3,
-			"fromY": 2,
-			"toX": 2,
-			"toY": 2
-		},
-		{
-			"fromX": 3,
-			"fromY": 2,
-			"toX": 4,
-			"toY": 2
-		},
-		{
-			"fromX": 4,
-			"fromY": 2,
-			"toX": 4,
-			"toY": 3
-		}
-	]
+  "xSize": 5,
+  "ySize": 9,
+  "nodes": [
+    {
+      "x": 4,
+      "y": 3,
+      "nodeType": "Battle"
+    },
+    {
+      "x": 3,
+      "y": 1,
+      "nodeType": "Battle"
+    },
+    {
+      "x": 3,
+      "y": 7,
+      "nodeType": "Reward"
+    },
+    {
+      "x": 4,
+      "y": 6,
+      "nodeType": "Battle"
+    },
+    {
+      "x": 2,
+      "y": 2,
+      "nodeType": "Event"
+    },
+    {
+      "x": 1,
+      "y": 0,
+      "nodeType": "Reward"
+    },
+    {
+      "x": 2,
+      "y": 5,
+      "nodeType": "Battle"
+    },
+    {
+      "x": 2,
+      "y": 8,
+      "nodeType": "End"
+    },
+    {
+      "x": 4,
+      "y": 2,
+      "nodeType": "Trap"
+    },
+    {
+      "x": 4,
+      "y": 5,
+      "nodeType": "Trap"
+    },
+    {
+      "x": 3,
+      "y": 3,
+      "nodeType": "Event"
+    },
+    {
+      "x": 3,
+      "y": 2,
+      "nodeType": "Battle"
+    },
+    {
+      "x": 4,
+      "y": 1,
+      "nodeType": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 7,
+      "nodeType": "Reward"
+    },
+    {
+      "x": 4,
+      "y": 4,
+      "nodeType": "Trap"
+    },
+    {
+      "x": 3,
+      "y": 8,
+      "nodeType": "Reward"
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "nodeType": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 0,
+      "nodeType": "Start"
+    },
+    {
+      "x": 1,
+      "y": 7,
+      "nodeType": "Trap"
+    },
+    {
+      "x": 2,
+      "y": 6,
+      "nodeType": "Empty"
+    }
+  ],
+  "connections": [
+    {
+      "fromX": 2,
+      "fromY": 0,
+      "toX": 3,
+      "toY": 1
+    },
+    {
+      "fromX": 2,
+      "fromY": 0,
+      "toX": 1,
+      "toY": 0
+    },
+    {
+      "fromX": 3,
+      "fromY": 1,
+      "toX": 3,
+      "toY": 2
+    },
+    {
+      "fromX": 3,
+      "fromY": 2,
+      "toX": 4,
+      "toY": 1
+    },
+    {
+      "fromX": 3,
+      "fromY": 2,
+      "toX": 2,
+      "toY": 2
+    },
+    {
+      "fromX": 4,
+      "fromY": 1,
+      "toX": 4,
+      "toY": 2
+    },
+    {
+      "fromX": 4,
+      "fromY": 2,
+      "toX": 4,
+      "toY": 3
+    },
+    {
+      "fromX": 4,
+      "fromY": 3,
+      "toX": 3,
+      "toY": 3
+    },
+    {
+      "fromX": 3,
+      "fromY": 3,
+      "toX": 4,
+      "toY": 4
+    },
+    {
+      "fromX": 4,
+      "fromY": 4,
+      "toX": 4,
+      "toY": 5
+    },
+    {
+      "fromX": 4,
+      "fromY": 5,
+      "toX": 4,
+      "toY": 6
+    },
+    {
+      "fromX": 4,
+      "fromY": 6,
+      "toX": 4,
+      "toY": 7
+    },
+    {
+      "fromX": 4,
+      "fromY": 7,
+      "toX": 3,
+      "toY": 8
+    },
+    {
+      "fromX": 3,
+      "fromY": 8,
+      "toX": 2,
+      "toY": 8
+    },
+    {
+      "fromX": 3,
+      "fromY": 8,
+      "toX": 3,
+      "toY": 7
+    },
+    {
+      "fromX": 1,
+      "fromY": 0,
+      "toX": 2,
+      "toY": 0
+    },
+    {
+      "fromX": 1,
+      "fromY": 0,
+      "toX": 0,
+      "toY": 0
+    },
+    {
+      "fromX": 3,
+      "fromY": 7,
+      "toX": 4,
+      "toY": 7
+    },
+    {
+      "fromX": 3,
+      "fromY": 7,
+      "toX": 2,
+      "toY": 6
+    },
+    {
+      "fromX": 0,
+      "fromY": 0,
+      "toX": 1,
+      "toY": 0
+    },
+    {
+      "fromX": 2,
+      "fromY": 2,
+      "toX": 3,
+      "toY": 2
+    },
+    {
+      "fromX": 2,
+      "fromY": 6,
+      "toX": 3,
+      "toY": 7
+    },
+    {
+      "fromX": 2,
+      "fromY": 6,
+      "toX": 2,
+      "toY": 5
+    },
+    {
+      "fromX": 2,
+      "fromY": 5,
+      "toX": 2,
+      "toY": 6
+    },
+    {
+      "fromX": 1,
+      "fromY": 7,
+      "toX": 2,
+      "toY": 6
+    },
+    {
+      "fromX": 2,
+      "fromY": 8,
+      "toX": 1,
+      "toY": 7
+    }
+  ]
 }

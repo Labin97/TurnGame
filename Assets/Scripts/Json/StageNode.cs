@@ -10,9 +10,11 @@ using Newtonsoft.Json;
 public enum StageNodeType
 {
     Start,
-    Normal,
+    Battle,
     Event,
-    Boss,
+    Trap,
+    Reward,
+    Empty,
     End,
 }
 
@@ -23,6 +25,8 @@ public class JsonStageNode
     public int y;
     [JsonConverter(typeof(StringEnumConverter))]
     public StageNodeType nodeType;
+
+    public bool isBoss; // 보스 여부
 }
 
 [Serializable]
