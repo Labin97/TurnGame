@@ -1,13 +1,7 @@
-using AYellowpaper.SerializedCollections;
 using Newtonsoft.Json;
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
-using Unity.VisualScripting;
-using UnityEditor.Build.Reporting;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class StageNode
 {
@@ -26,26 +20,28 @@ public class StageInfo
 
 public class DungeonSystem : MonoBehaviour
 {
-    [Header("Prefabs & Containers")]
-    [SerializedDictionary("StageNodeType", "Prefab")]
-    public SerializedDictionary<StageNodeType, GameObject> nodePrefabs;
-    public Transform nodeContainer;
-    public Transform edgeContainer;
-
-    [Header("Spacing (UI distance between nodes)")]
-    public float spacingX = 100f;
-    public float spacingY = 100f;
-
     private StageInfo currentStageInfo = null;
-    private Dictionary<(int, int), GameObject> nodeMap = new();
-
+    private List<StageNode> visibleNodes = new();
+    
     void Start()
     {
         InitStage();
-        VisualizeStage();
+
+        DungeonUISystem dungeonUISystem = GameObject.Find("DungeonUISystem").GetComponent<DungeonUISystem>();
+        dungeonUISystem?.VisualizeStage();
     }
 
-    public void InitStage()
+    public StageInfo GetStageInfo()
+    {
+        return currentStageInfo;
+    }
+
+    public List<StageNode> GetVisibleNodes()
+    {
+        return visibleNodes;
+    }
+
+    private void InitStage()
     {
         TextAsset textAsset = Resources.Load<TextAsset>("Data/Json/Region/Region1/Stage1");
         JsonStageInfo json = JsonConvert.DeserializeObject<JsonStageInfo>(textAsset.text);
@@ -72,7 +68,12 @@ public class DungeonSystem : MonoBehaviour
                 nodeType = jsonNode.nodeType,
                 connections = new List<StageNode>()
             };
+
             currentStageInfo.nodes.Add(newNode);
+            if (newNode.nodeType == StageNodeType.Start)
+            {
+                visibleNodes.Add(newNode);
+            }
         }
 
         // 연결 생성
@@ -91,67 +92,5 @@ public class DungeonSystem : MonoBehaviour
         }
 
         Debug.Log("InitStage Success");
-    }
-
-    private void VisualizeStage()
-    {
-        //nodeMap.Clear();
-
-        //// 노드 배치
-        //foreach (var node in currentStageInfo.nodes)
-        //{
-        //    GameObject obj = Instantiate(nodePrefab, nodeContainer);
-        //    RectTransform rt = obj.GetComponent<RectTransform>();
-        //    rt.anchoredPosition = new Vector2(node.x * spacingX, node.y * spacingY);
-        //    nodeMap[(node.x, node.y)] = obj;
-        //}
-
-        //// 중복 연결 방지 + 선 그리기
-        //HashSet<(Vector2, Vector2)> drawn = new();
-
-        //foreach (var fromNode in currentStageInfo.nodes)
-        //{
-        //    Vector2 fromPos = nodeMap[(fromNode.x, fromNode.y)].GetComponent<RectTransform>().anchoredPosition;
-
-        //    foreach (var toNode in fromNode.connections)
-        //    {
-        //        Vector2 toPos = nodeMap[(toNode.x, toNode.y)].GetComponent<RectTransform>().anchoredPosition;
-
-        //        var pair = (fromPos, toPos);
-        //        var reverse = (toPos, fromPos);
-        //        if (drawn.Contains(pair) || drawn.Contains(reverse)) continue;
-
-        //        Color lineColor = GetColorByNodeType(fromNode, toNode);
-        //        DrawLine(fromPos, toPos, lineColor);
-
-        //        drawn.Add(pair);
-        //    }
-        //}
-    }
-
-    private Color GetColorByNodeType(StageNode from, StageNode to)
-    {
-        if (from.nodeType == StageNodeType.Start || to.nodeType == StageNodeType.Start)
-            return Color.green;
-        if (from.nodeType == StageNodeType.End || to.nodeType == StageNodeType.End)
-            return Color.blue;
-        return new Color(1f, 1f, 1f, 0.4f); // 기본: 반투명 흰색
-    }
-
-    private void DrawLine(Vector2 start, Vector2 end, Color lineColor)
-    {
-        GameObject line = new GameObject("Edge", typeof(Image));
-        line.transform.SetParent(edgeContainer, false);
-
-        Image img = line.GetComponent<Image>();
-        img.color = lineColor;
-
-        RectTransform rt = img.GetComponent<RectTransform>();
-        rt.pivot = new Vector2(0, 0.5f);
-        rt.sizeDelta = new Vector2(Vector2.Distance(start, end), 3f);
-        rt.anchoredPosition = start;
-
-        float angle = Mathf.Atan2(end.y - start.y, end.x - start.x) * Mathf.Rad2Deg;
-        rt.rotation = Quaternion.Euler(0, 0, angle);
     }
 }
