@@ -23,6 +23,7 @@ public class MapEditor : EditorWindow
     private bool isDragging = false;
     private int dragStartNodeIndex = -1;
     private Vector2 dragCurrentPos;
+    private bool showHelp = false;
     #endregion
 
     #region Unity Lifecycle
@@ -266,6 +267,8 @@ public class MapEditor : EditorWindow
         GUILayout.Label($"Save Path: {savePath}");
         GUILayout.Label($"File Name: {fileName}");
 
+        GUILayout.Space(10);
+
         if (selectedNodeIndex >= 0 && selectedNodeIndex < nodes.Count)
         {
             GUILayout.Label("Selected Node", EditorStyles.boldLabel);
@@ -281,7 +284,56 @@ public class MapEditor : EditorWindow
         GUILayout.Label($"Nodes: {nodes.Count}");
         GUILayout.Label($"Connections: {connections.Count}");
 
+        GUILayout.Space(20);
+
+        //도움말
+        if (GUILayout.Button("Help"))
+        {
+            showHelp = !showHelp;
+        }
+
+        if (showHelp)
+        {
+            DrawHelpSection();
+        }
+
         GUILayout.EndArea();
+    }
+
+    private void DrawHelpSection()
+    {
+        GUILayout.BeginVertical("box");
+
+        GUILayout.Label("사용법", EditorStyles.boldLabel);
+
+        GUILayout.Space(5);
+
+        GUILayout.Label("상단 툴 바에서 New / Load / Save 가능");
+        GUILayout.Label("상단 툴 바에서 생성할 노드 타입 변경 가능");
+        GUILayout.Label("우측 스테이지 세팅에서 X, Y로 맵 전체 크기 결정");
+        
+
+        GUILayout.Space(5);
+
+        GUILayout.Label("입력", EditorStyles.boldLabel);
+
+        GUILayout.Label("좌클릭: 노드 생성 / 선택");
+        GUILayout.Label("노드 선택 후 노드 타입 변경 가능");
+        GUILayout.Label("우클릭: 노드 삭제");
+        GUILayout.Label("드래그: 노드 연결");
+        GUILayout.Label("연결된 노드 드래그 : 연결 삭제");
+
+        GUILayout.Space(5);
+
+        GUILayout.Label("노드 색상", EditorStyles.boldLabel);
+
+        GUILayout.Label("회색: Start, 빨강: Battle");
+        GUILayout.Label("자홍: Event, 파랑: Trap");
+        GUILayout.Label("노랑: Reward, 하양: Empty");
+        GUILayout.Label("그린: End, 검정: Boss");
+        
+
+        GUILayout.EndVertical();
     }
     #endregion
 
