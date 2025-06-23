@@ -88,7 +88,12 @@ public class DungeonSystem : MonoBehaviour
                 continue;
             }
 
-            from.connections.Add(to);
+            // ?? ??? ??
+            if (!from.connections.Contains(to))
+                from.connections.Add(to);
+
+            if (!to.connections.Contains(from))
+                to.connections.Add(from);
         }
 
         Debug.Log("InitStage Success");

@@ -4,6 +4,7 @@ using UnityEditor;
 using Newtonsoft.Json;
 using System.Linq;
 using System.IO;
+using System;
 
 public class MapEditor : EditorWindow
 {
@@ -185,10 +186,6 @@ public class MapEditor : EditorWindow
             Vector2 toPos = GridToScreen(new Vector2(connection.toX, connection.toY));
             
             Handles.DrawLine(new Vector3(fromPos.x, fromPos.y, 0), new Vector3(toPos.x, toPos.y, 0));
-            
-            Vector2 direction = (toPos - fromPos).normalized;
-            Vector2 arrowPos = Vector2.Lerp(fromPos, toPos, 0.7f);
-            DrawArrow(arrowPos, direction, 8f);
         }
         
         Handles.EndGUI();
@@ -207,12 +204,13 @@ public class MapEditor : EditorWindow
             // 드래그 라인 색상 결정
             if (endNodeIndex >= 0 && endNodeIndex != dragStartNodeIndex)
             {
-                // 정확히 같은 방향의 연결만 확인
+                // 양 방향의 연결 확인
                 JsonStageNode fromNode = nodes[dragStartNodeIndex];
                 JsonStageNode toNode = nodes[endNodeIndex];
-                
-                bool connectionExists = connections.Any(c => 
-                    c.fromX == fromNode.x && c.fromY == fromNode.y && c.toX == toNode.x && c.toY == toNode.y);
+
+               bool connectionExists = connections.Any(c => 
+                    (c.fromX == fromNode.x && c.fromY == fromNode.y && c.toX == toNode.x && c.toY == toNode.y) ||
+                    (c.fromX == toNode.x && c.fromY == toNode.y && c.toX == fromNode.x && c.toY == fromNode.y)); 
                 
                 // 같은 방향 연결이 있으면 빨간색(삭제), 없으면 초록색(생성)
                 Handles.color = connectionExists ? Color.red : Color.green;
@@ -226,17 +224,6 @@ public class MapEditor : EditorWindow
             Handles.DrawLine(new Vector3(startPos.x, startPos.y, 0), new Vector3(dragCurrentPos.x, dragCurrentPos.y, 0));
             Handles.EndGUI();
         }
-    }
-
-    private void DrawArrow(Vector2 position, Vector2 direction, float size)
-    {
-        Vector2 right = new Vector2(-direction.y, direction.x);
-        Vector2 arrowTip = position + direction * size;
-        Vector2 arrowLeft = position + right * size * 0.5f;
-        Vector2 arrowRight = position - right * size * 0.5f;
-        
-        Handles.DrawLine(new Vector3(arrowLeft.x, arrowLeft.y, 0), new Vector3(arrowTip.x, arrowTip.y, 0));
-        Handles.DrawLine(new Vector3(arrowRight.x, arrowRight.y, 0), new Vector3(arrowTip.x, arrowTip.y, 0));
     }
 
     private void DrawSidebar()
@@ -516,29 +503,36 @@ public class MapEditor : EditorWindow
         JsonStageNode fromNode = nodes[fromNodeIndex];
         JsonStageNode toNode = nodes[toNodeIndex];
         
-        // 정확히 같은 방향의 연결만 찾기 (A→B만 확인, B→A는 별개)
+        // 어떤 방향이든 연결이 있는지 확인
         JsonStageNodeConnection existingConnection = connections.FirstOrDefault(c => 
-            c.fromX == fromNode.x && c.fromY == fromNode.y && c.toX == toNode.x && c.toY == toNode.y);
+            (c.fromX == fromNode.x && c.fromY == fromNode.y && c.toX == toNode.x && c.toY == toNode.y) ||
+            (c.fromX == toNode.x && c.fromY == toNode.y && c.toX == fromNode.x && c.toY == fromNode.y));
         
         if (existingConnection != null)
         {
-            // 정확히 같은 방향의 연결이 있으면 삭제
             connections.Remove(existingConnection);
-            Debug.Log($"Connection removed: ({fromNode.x},{fromNode.y}) -> ({toNode.x},{toNode.y})");
         }
         else
         {
-            // 같은 방향의 연결이 없으면 새로 생성
-            JsonStageNodeConnection newConnection = new JsonStageNodeConnection
+            // 한 방향만 저장 (항상 x가 작은 쪽을 from으로)
+            JsonStageNodeConnection newConnection = new JsonStageNodeConnection();
+            
+            if (fromNode.x < toNode.x || (fromNode.x == toNode.x && fromNode.y < toNode.y))
             {
-                fromX = fromNode.x,
-                fromY = fromNode.y,
-                toX = toNode.x,
-                toY = toNode.y
-            };
+                newConnection.fromX = fromNode.x;
+                newConnection.fromY = fromNode.y;
+                newConnection.toX = toNode.x;
+                newConnection.toY = toNode.y;
+            }
+            else
+            {
+                newConnection.fromX = toNode.x;
+                newConnection.fromY = toNode.y;
+                newConnection.toX = fromNode.x;
+                newConnection.toY = fromNode.y;
+            }
             
             connections.Add(newConnection);
-            Debug.Log($"Connection created: ({fromNode.x},{fromNode.y}) -> ({toNode.x},{toNode.y})");
         }
     }
 
