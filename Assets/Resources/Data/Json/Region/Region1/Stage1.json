@@ -105,16 +105,28 @@
   ],
   "connections": [
     {
-      "fromX": 2,
+      "fromX": 1,
       "fromY": 0,
+      "toX": 2,
+      "toY": 0
+    },
+    {
+      "fromX": 0,
+      "fromY": 0,
+      "toX": 1,
+      "toY": 0
+    },
+    {
+      "fromX": 2,
+      "fromY": 6,
       "toX": 3,
-      "toY": 1
+      "toY": 7
     },
     {
       "fromX": 2,
       "fromY": 0,
-      "toX": 1,
-      "toY": 0
+      "toX": 3,
+      "toY": 1
     },
     {
       "fromX": 3,
@@ -123,16 +135,16 @@
       "toY": 2
     },
     {
-      "fromX": 3,
+      "fromX": 2,
       "fromY": 2,
-      "toX": 4,
-      "toY": 1
+      "toX": 3,
+      "toY": 2
     },
     {
       "fromX": 3,
       "fromY": 2,
-      "toX": 2,
-      "toY": 2
+      "toX": 4,
+      "toY": 1
     },
     {
       "fromX": 4,
@@ -147,9 +159,9 @@
       "toY": 3
     },
     {
-      "fromX": 4,
+      "fromX": 3,
       "fromY": 3,
-      "toX": 3,
+      "toX": 4,
       "toY": 3
     },
     {
@@ -177,36 +189,6 @@
       "toY": 7
     },
     {
-      "fromX": 4,
-      "fromY": 7,
-      "toX": 3,
-      "toY": 8
-    },
-    {
-      "fromX": 3,
-      "fromY": 8,
-      "toX": 2,
-      "toY": 8
-    },
-    {
-      "fromX": 3,
-      "fromY": 8,
-      "toX": 3,
-      "toY": 7
-    },
-    {
-      "fromX": 1,
-      "fromY": 0,
-      "toX": 2,
-      "toY": 0
-    },
-    {
-      "fromX": 1,
-      "fromY": 0,
-      "toX": 0,
-      "toY": 0
-    },
-    {
       "fromX": 3,
       "fromY": 7,
       "toX": 4,
@@ -214,39 +196,27 @@
     },
     {
       "fromX": 3,
-      "fromY": 7,
-      "toX": 2,
-      "toY": 6
-    },
-    {
-      "fromX": 0,
-      "fromY": 0,
-      "toX": 1,
-      "toY": 0
-    },
-    {
-      "fromX": 2,
-      "fromY": 2,
-      "toX": 3,
-      "toY": 2
-    },
-    {
-      "fromX": 2,
-      "fromY": 6,
-      "toX": 3,
+      "fromY": 8,
+      "toX": 4,
       "toY": 7
     },
     {
-      "fromX": 2,
-      "fromY": 6,
-      "toX": 2,
-      "toY": 5
+      "fromX": 3,
+      "fromY": 7,
+      "toX": 3,
+      "toY": 8
     },
     {
       "fromX": 2,
-      "fromY": 5,
+      "fromY": 8,
+      "toX": 3,
+      "toY": 8
+    },
+    {
+      "fromX": 1,
+      "fromY": 7,
       "toX": 2,
-      "toY": 6
+      "toY": 8
     },
     {
       "fromX": 1,
@@ -256,9 +226,9 @@
     },
     {
       "fromX": 2,
-      "fromY": 8,
-      "toX": 1,
-      "toY": 7
+      "fromY": 5,
+      "toX": 2,
+      "toY": 6
     }
   ]
 }

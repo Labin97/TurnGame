@@ -17,7 +17,7 @@ public class MapEditor : EditorWindow
     private string savePath = "Assets/Resources/Data/Json/Region/";
     private string fileName;
 
-    private StageNodeType selectedNodeType = StageNodeType.Empty;
+    private StageNodeType selectedNodeType = StageNodeType.Start;
     private float sidebarMargin => position.width * 0.3f;
     private int selectedNodeIndex = -1;
 
@@ -74,22 +74,9 @@ public class MapEditor : EditorWindow
 
         stageInfo.xSize = Mathf.Max(1, stageInfo.xSize);
         stageInfo.ySize = Mathf.Max(1, stageInfo.ySize);
-
-        CreateStartNode();
     }
 
-    private void CreateStartNode()
-    {
-        if (nodes.Count > 0 || stageInfo.xSize < 3) return;
 
-        JsonStageNode startNode = new JsonStageNode
-        {
-            x = 2,
-            y = 0,
-            nodeType = StageNodeType.Start
-        };
-        nodes.Add(startNode);
-    }
     #endregion
 
     #region Drawing Methods
@@ -572,8 +559,6 @@ public class MapEditor : EditorWindow
 
         savePath = "Assets/Resources/Data/Json/Region/";
         fileName = "";
-
-        CreateStartNode();
 
         // 화면 갱신
         Repaint();
