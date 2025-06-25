@@ -21,8 +21,9 @@ public class StageInfo
 public class DungeonSystem : MonoBehaviour
 {
     private StageInfo currentStageInfo = null;
-    private List<StageNode> visibleNodes = new();
-    
+    private List<StageNode> visitedNodes = new();
+    private StageNode currentNode = null;
+
     void Start()
     {
         InitStage();
@@ -36,10 +37,33 @@ public class DungeonSystem : MonoBehaviour
         return currentStageInfo;
     }
 
+    public StageNode GetCurrentNode()
+    {
+        return currentNode;
+    }
+
+    public List<StageNode> GetVisitedNodes()
+    {
+        return visitedNodes;
+    }
+
     public List<StageNode> GetVisibleNodes()
     {
-        return visibleNodes;
+        HashSet<StageNode> visibleSet = new HashSet<StageNode>();
+
+        foreach (StageNode visitedNode in visitedNodes)
+        {
+            visibleSet.Add(visitedNode);
+
+            foreach (StageNode connectedNode in visitedNode.connections)
+            {
+                visibleSet.Add(connectedNode);
+            }
+        }
+
+        return new List<StageNode>(visibleSet);
     }
+
 
     private void InitStage()
     {
@@ -72,7 +96,8 @@ public class DungeonSystem : MonoBehaviour
             currentStageInfo.nodes.Add(newNode);
             if (newNode.nodeType == StageNodeType.Start)
             {
-                visibleNodes.Add(newNode);
+                visitedNodes.Add(newNode);
+                currentNode = newNode;
             }
         }
 
@@ -98,4 +123,6 @@ public class DungeonSystem : MonoBehaviour
 
         Debug.Log("InitStage Success");
     }
+
+
 }
