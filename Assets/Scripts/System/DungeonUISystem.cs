@@ -24,9 +24,16 @@ public class DungeonUISystem : MonoBehaviour
     {
         DungeonSystem dungeonSystem = GameObject.Find("DungeonSystem").GetComponent<DungeonSystem>();
 
+        //화면 초기화, Map 초기화
+        ClearStageVisuals();
         nodeInstanceMap.Clear();
 
-        // 노드 배치
+        VisualizeNodes(dungeonSystem);
+        VisualizeConnections(dungeonSystem);
+    }
+
+    private void VisualizeNodes(DungeonSystem dungeonSystem)
+    {
         foreach (StageNode node in dungeonSystem.CalculateVisibleNodes())
         {
             GameObject nodePrefab = null;
@@ -46,28 +53,30 @@ public class DungeonUISystem : MonoBehaviour
                 nodeInstanceMap[node] = obj;
             }
         }
+    }
 
-        //중복 연결 방지 + 선 그리기
+    private void VisualizeConnections(DungeonSystem dungeonSystem)
+    {
         HashSet<(Vector2, Vector2)> drawn = new();
 
         foreach (var fromNode in dungeonSystem.GetVisitedNodes())
         {
-           Vector2 fromPos = nodeInstanceMap[fromNode].GetComponent<RectTransform>().anchoredPosition;
+            Vector2 fromPos = nodeInstanceMap[fromNode].GetComponent<RectTransform>().anchoredPosition;
 
-           foreach (var toNode in fromNode.connections)
-           {
-               Vector2 toPos = nodeInstanceMap[toNode].GetComponent<RectTransform>().anchoredPosition;
+            foreach (var toNode in fromNode.connections)
+            {
+                Vector2 toPos = nodeInstanceMap[toNode].GetComponent<RectTransform>().anchoredPosition;
 
-               var pair = (fromPos, toPos);
-               var reverse = (toPos, fromPos);
+                var pair = (fromPos, toPos);
+                var reverse = (toPos, fromPos);
 
-               if (drawn.Contains(pair) || drawn.Contains(reverse)) continue;
+                if (drawn.Contains(pair) || drawn.Contains(reverse)) continue;
 
-               Color lineColor = GetColorByNodeType(fromNode, toNode);
-               DrawLine(fromPos, toPos, lineColor);
+                Color lineColor = GetColorByNodeType(fromNode, toNode);
+                DrawLine(fromPos, toPos, lineColor);
 
-               drawn.Add(pair);
-           }
+                drawn.Add(pair);
+            }
         }
     }
 
@@ -95,5 +104,18 @@ public class DungeonUISystem : MonoBehaviour
 
         float angle = Mathf.Atan2(end.y - start.y, end.x - start.x) * Mathf.Rad2Deg;
         rt.rotation = Quaternion.Euler(0, 0, angle);
+    }
+
+    private void ClearStageVisuals()
+    {
+        for (int i = nodeContainer.childCount - 1; i >= 0; i--)
+        {
+            Destroy(nodeContainer.GetChild(i).gameObject);
+        }
+    
+        for (int i = edgeContainer.childCount - 1; i >= 0; i--)
+        {
+            Destroy(edgeContainer.GetChild(i).gameObject);
+        }
     }
 }

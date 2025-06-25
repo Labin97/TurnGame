@@ -27,8 +27,6 @@ public class StageNodeUI : MonoBehaviour
         {
             Debug.Log("방문한 곳 다시 가욥");
             dungeonSystem.MoveToNode(stageNode);
-
-            return;
         }
 
         else
