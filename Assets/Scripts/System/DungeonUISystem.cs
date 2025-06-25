@@ -27,7 +27,7 @@ public class DungeonUISystem : MonoBehaviour
         nodeInstanceMap.Clear();
 
         // 노드 배치
-        foreach (StageNode node in dungeonSystem.GetVisibleNodes())
+        foreach (StageNode node in dungeonSystem.CalculateVisibleNodes())
         {
             GameObject nodePrefab = null;
             if (nodePrefabMap.TryGetValue(node.nodeType, out nodePrefab))
@@ -35,12 +35,21 @@ public class DungeonUISystem : MonoBehaviour
                 GameObject obj = Instantiate(nodePrefab, nodeContainer);
                 RectTransform rt = obj.GetComponent<RectTransform>();
                 rt.anchoredPosition = new Vector2(node.x * spacingX, node.y * spacingY);
+
+                //스테이지 노드 UI 초기화
+                StageNodeUI nodeUI = obj.GetComponent<StageNodeUI>();
+                if (nodeUI != null)
+                {
+                    nodeUI.Initialize(node);
+                }
+
                 nodeInstanceMap[node] = obj;
             }
         }
 
         //중복 연결 방지 + 선 그리기
         HashSet<(Vector2, Vector2)> drawn = new();
+
         foreach (var fromNode in dungeonSystem.GetVisitedNodes())
         {
            Vector2 fromPos = nodeInstanceMap[fromNode].GetComponent<RectTransform>().anchoredPosition;

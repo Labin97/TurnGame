@@ -47,29 +47,31 @@ public class DungeonSystem : MonoBehaviour
         return visitedNodes;
     }
 
-    public List<StageNode> GetVisibleNodes()
+    public bool IsVisitedNode(StageNode node)
     {
-        HashSet<StageNode> visibleSet = new HashSet<StageNode>();
-
-        if (visitedNodes == null)
-        {
-            Debug.LogError("GetVisibleNodes failed - visitedNodes is null");
-            return new List<StageNode>();
-        }
-
-        foreach (StageNode visitedNode in visitedNodes)
-        {
-            visibleSet.Add(visitedNode);
-
-            foreach (StageNode connectedNode in visitedNode.connections)
-            {
-                visibleSet.Add(connectedNode);
-            }
-        }
-
-        return new List<StageNode>(visibleSet);
+        return visitedNodes.Contains(node);
     }
 
+    public bool IsMovableNode(StageNode node)
+    {
+        if (currentNode == null)
+            return false;
+        else
+            return currentNode.connections.Contains(node);
+    }
+
+    public void MoveToNode(StageNode targetNode)
+    {
+        if (!visitedNodes.Contains(targetNode))
+        {
+            visitedNodes.Add(targetNode);
+        }
+        currentNode = targetNode;
+
+        //?? ?? ??
+        DungeonUISystem dungeonUISystem = GameObject.Find("DungeonUISystem").GetComponent<DungeonUISystem>();
+        dungeonUISystem?.VisualizeStage();
+    }
 
     private void InitStage()
     {
@@ -130,5 +132,27 @@ public class DungeonSystem : MonoBehaviour
         Debug.Log("InitStage Success");
     }
 
+    public List<StageNode> CalculateVisibleNodes()
+    {
+        HashSet<StageNode> visibleSet = new HashSet<StageNode>();
+
+        if (visitedNodes == null)
+        {
+            Debug.LogError("GetVisibleNodes failed - visitedNodes is null");
+            return new List<StageNode>();
+        }
+
+        foreach (StageNode visitedNode in visitedNodes)
+        {
+            visibleSet.Add(visitedNode);
+
+            foreach (StageNode connectedNode in visitedNode.connections)
+            {
+                visibleSet.Add(connectedNode);
+            }
+        }
+
+        return new List<StageNode>(visibleSet);
+    }
 
 }
