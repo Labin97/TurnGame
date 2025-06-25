@@ -51,6 +51,12 @@ public class DungeonSystem : MonoBehaviour
     {
         HashSet<StageNode> visibleSet = new HashSet<StageNode>();
 
+        if (visitedNodes == null)
+        {
+            Debug.LogError("GetVisibleNodes failed - visitedNodes is null");
+            return new List<StageNode>();
+        }
+
         foreach (StageNode visitedNode in visitedNodes)
         {
             visibleSet.Add(visitedNode);
@@ -113,7 +119,7 @@ public class DungeonSystem : MonoBehaviour
                 continue;
             }
 
-            // ?? ??? ??
+            // ??? ??? ??
             if (!from.connections.Contains(to))
                 from.connections.Add(to);
 

@@ -39,27 +39,27 @@ public class DungeonUISystem : MonoBehaviour
             }
         }
 
-        //// 중복 연결 방지 + 선 그리기
-        //HashSet<(Vector2, Vector2)> drawn = new();
+        //중복 연결 방지 + 선 그리기
+        HashSet<(Vector2, Vector2)> drawn = new();
+        foreach (var fromNode in dungeonSystem.GetVisitedNodes())
+        {
+           Vector2 fromPos = nodeInstanceMap[fromNode].GetComponent<RectTransform>().anchoredPosition;
 
-        //foreach (var fromNode in stageInfo.nodes)
-        //{
-        //    Vector2 fromPos = nodeMap[(fromNode.x, fromNode.y)].GetComponent<RectTransform>().anchoredPosition;
+           foreach (var toNode in fromNode.connections)
+           {
+               Vector2 toPos = nodeInstanceMap[toNode].GetComponent<RectTransform>().anchoredPosition;
 
-        //    foreach (var toNode in fromNode.connections)
-        //    {
-        //        Vector2 toPos = nodeMap[(toNode.x, toNode.y)].GetComponent<RectTransform>().anchoredPosition;
+               var pair = (fromPos, toPos);
+               var reverse = (toPos, fromPos);
 
-        //        var pair = (fromPos, toPos);
-        //        var reverse = (toPos, fromPos);
-        //        if (drawn.Contains(pair) || drawn.Contains(reverse)) continue;
+               if (drawn.Contains(pair) || drawn.Contains(reverse)) continue;
 
-        //        Color lineColor = GetColorByNodeType(fromNode, toNode);
-        //        DrawLine(fromPos, toPos, lineColor);
+               Color lineColor = GetColorByNodeType(fromNode, toNode);
+               DrawLine(fromPos, toPos, lineColor);
 
-        //        drawn.Add(pair);
-        //    }
-        //}
+               drawn.Add(pair);
+           }
+        }
     }
 
     private Color GetColorByNodeType(StageNode from, StageNode to)
