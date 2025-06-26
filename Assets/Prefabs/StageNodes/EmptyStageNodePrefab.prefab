@@ -65,9 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'E
-
-'
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -149,10 +147,10 @@ GameObject:
   - component: {fileID: 621298920721250687}
   - component: {fileID: 4677811479107093125}
   - component: {fileID: 6944967407416496637}
-  - component: {fileID: -6903890444132782999}
-  - component: {fileID: 8344783143504778221}
+  - component: {fileID: 7408777957201276164}
+  - component: {fileID: -6991775289139289653}
   m_Layer: 5
-  m_Name: EndStageNodePrefab
+  m_Name: EmptyStageNodePrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -216,7 +214,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &-6903890444132782999
+--- !u!114 &7408777957201276164
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -260,7 +258,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 8344783143504778221}
+      - m_Target: {fileID: -6991775289139289653}
         m_TargetAssemblyTypeName: 
         m_MethodName: OnClick
         m_Mode: 1
@@ -272,7 +270,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
---- !u!114 &8344783143504778221
+--- !u!114 &-6991775289139289653
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

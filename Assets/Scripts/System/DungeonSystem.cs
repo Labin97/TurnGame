@@ -129,7 +129,7 @@ public class DungeonSystem : SingleTon<DungeonSystem>
         Debug.Log("InitStage Success");
     }
 
-    public List<StageNode> CalculateVisibleNodes()
+    public List<StageNode> CalculateUnknownNodes()
     {
         HashSet<StageNode> visibleSet = new HashSet<StageNode>();
 
@@ -141,11 +141,12 @@ public class DungeonSystem : SingleTon<DungeonSystem>
 
         foreach (StageNode visitedNode in visitedNodes)
         {
-            visibleSet.Add(visitedNode);
-
             foreach (StageNode connectedNode in visitedNode.connections)
             {
-                visibleSet.Add(connectedNode);
+                if (!visitedNodes.Contains(connectedNode))
+                {
+                    visibleSet.Add(connectedNode);
+                }
             }
         }
 

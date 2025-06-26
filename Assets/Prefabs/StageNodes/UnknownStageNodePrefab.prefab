@@ -150,7 +150,7 @@ GameObject:
   - component: {fileID: -9047616716773259441}
   - component: {fileID: -2182758239315485505}
   m_Layer: 5
-  m_Name: StageNodePrefab
+  m_Name: UnknownStageNodePrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

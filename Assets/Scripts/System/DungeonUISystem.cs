@@ -12,6 +12,7 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
     [SerializedDictionary("StageNodeType", "Prefab")]
     public SerializedDictionary<StageNodeType, GameObject> nodePrefabMap;
     public GameObject playerUIPrefab;
+    public GameObject UnknownNodePrefab;
     public Transform nodeContainer;
     public Transform edgeContainer;
     public Transform playerContainer;
@@ -35,23 +36,19 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
 
     private void VisualizeNodes()
     {
-        foreach (StageNode node in DungeonSystem.Instance.CalculateVisibleNodes())
+        // UnknownNodes 그리기
+        foreach (StageNode node in DungeonSystem.Instance.CalculateUnknownNodes())
+        {
+            CreateNodeInstance(node, UnknownNodePrefab);
+        }
+
+        // VisitedNodes 그리기
+        foreach (StageNode node in DungeonSystem.Instance.GetVisitedNodes())
         {
             GameObject nodePrefab = null;
             if (nodePrefabMap.TryGetValue(node.nodeType, out nodePrefab))
             {
-                GameObject obj = Instantiate(nodePrefab, nodeContainer);
-                RectTransform rt = obj.GetComponent<RectTransform>();
-                rt.anchoredPosition = new Vector2(node.x * spacingX, node.y * spacingY);
-
-                //스테이지 노드 UI 초기화
-                StageNodeUI nodeUI = obj.GetComponent<StageNodeUI>();
-                if (nodeUI != null)
-                {
-                    nodeUI.Initialize(node);
-                }
-
-                nodeInstanceMap[node] = obj;
+                CreateNodeInstance(node, nodePrefab);
             }
         }
     }
@@ -132,6 +129,22 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
 
         float angle = Mathf.Atan2(end.y - start.y, end.x - start.x) * Mathf.Rad2Deg;
         rt.rotation = Quaternion.Euler(0, 0, angle);
+    }
+
+    private void CreateNodeInstance(StageNode node, GameObject prefab)
+    {
+        GameObject obj = Instantiate(prefab, nodeContainer);
+        RectTransform rt = obj.GetComponent<RectTransform>();
+        rt.anchoredPosition = new Vector2(node.x * spacingX, node.y * spacingY);
+
+        //스테이지 노드 UI 초기화
+        StageNodeUI nodeUI = obj.GetComponent<StageNodeUI>();
+        if (nodeUI != null)
+        {
+            nodeUI.Initialize(node);
+        }
+
+        nodeInstanceMap[node] = obj;
     }
 
     private void ClearStageVisuals()
