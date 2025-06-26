@@ -59,6 +59,7 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
     private void VisualizeConnections()
     {
         HashSet<(Vector2, Vector2)> drawn = new();
+        StageNode currentNode = DungeonSystem.Instance.GetCurrentNode();
 
         foreach (var fromNode in DungeonSystem.Instance.GetVisitedNodes())
         {
@@ -71,7 +72,9 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
                 var pair = (fromPos, toPos);
                 var reverse = (toPos, fromPos);
 
-                if (drawn.Contains(pair) || drawn.Contains(reverse)) continue;
+                bool isCurrentConnection = (fromNode == currentNode && currentNode.connections.Contains(toNode));
+
+                if (!isCurrentConnection && (drawn.Contains(pair) || drawn.Contains(reverse))) continue;
 
                 Color lineColor = GetColorByNodeType(fromNode, toNode);
                 DrawLine(fromPos, toPos, lineColor);
@@ -101,10 +104,16 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
 
     private Color GetColorByNodeType(StageNode from, StageNode to)
     {
-        if (from.nodeType == StageNodeType.Start || to.nodeType == StageNodeType.Start)
-            return Color.green;
+        StageNode currentNode = DungeonSystem.Instance.GetCurrentNode();
+
+        // 도착 지점은 blue
         if (from.nodeType == StageNodeType.End || to.nodeType == StageNodeType.End)
             return Color.blue;
+
+        // 이동 가능 지점은 green
+        if (from == currentNode && currentNode.connections.Contains(to))
+            return Color.green;
+
         return new Color(1f, 1f, 1f, 0.4f); // 기본: 반투명 흰색
     }
 
