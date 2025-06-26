@@ -119,6 +119,41 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &232339354
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 232339355}
+  m_Layer: 5
+  m_Name: StagePlayerContainer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &232339355
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 232339354}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1299454566}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 8.501198, y: -389.99994}
+  m_SizeDelta: {x: 17, y: 780}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &241500529
 GameObject:
   m_ObjectHideFlags: 0
@@ -395,7 +430,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -465,6 +500,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1255408073}
   - component: {fileID: 1255408072}
+  - component: {fileID: 1255408074}
   m_Layer: 0
   m_Name: DungeonUISystem
   m_TagString: Untagged
@@ -502,8 +538,10 @@ MonoBehaviour:
       Value: {fileID: 3854277535865354811, guid: 4e5c6f073554c674aba81a038bf081f9, type: 3}
     - Key: 7
       Value: {fileID: 3854277535865354811, guid: f41e6e3673223fa46b2b40f93930f440, type: 3}
+  playerUIPrefab: {fileID: 4985139024988952478, guid: 482db9a04147f8c4abfc9a9f388f6076, type: 3}
   nodeContainer: {fileID: 1757183862}
   edgeContainer: {fileID: 1074266415}
+  playerContainer: {fileID: 232339355}
   spacingX: 100
   spacingY: 100
 --- !u!4 &1255408073
@@ -521,6 +559,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1255408074
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1255408071}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f4315b5dedcd4d4fafcdef3b4096b75, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  infoPanelPrefab: {fileID: 0}
 --- !u!1 &1299454565
 GameObject:
   m_ObjectHideFlags: 0
@@ -551,6 +602,7 @@ RectTransform:
   m_Children:
   - {fileID: 1074266415}
   - {fileID: 1757183862}
+  - {fileID: 232339355}
   m_Father: {fileID: 1743378260}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}

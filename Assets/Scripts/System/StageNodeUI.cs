@@ -25,13 +25,12 @@ public class StageNodeUI : MonoBehaviour
 
         if (dungeonSystem.IsVisitedNode(stageNode))
         {
-            Debug.Log("방문한 곳 다시 가욥");
+            //이벤트 x
             dungeonSystem.MoveToNode(stageNode);
         }
-
         else
         {
-            Debug.Log("새로운 곳 가욥");
+            //이벤트 O
             dungeonSystem.MoveToNode(stageNode);
         }
     }

@@ -11,8 +11,10 @@ public class DungeonUISystem : MonoBehaviour
     [Header("Prefabs & Containers")]
     [SerializedDictionary("StageNodeType", "Prefab")]
     public SerializedDictionary<StageNodeType, GameObject> nodePrefabMap;
+    public GameObject playerUIPrefab;
     public Transform nodeContainer;
     public Transform edgeContainer;
+    public Transform playerContainer;
 
     [Header("Spacing (UI distance between nodes)")]
     public float spacingX = 100f;
@@ -30,6 +32,7 @@ public class DungeonUISystem : MonoBehaviour
 
         VisualizeNodes(dungeonSystem);
         VisualizeConnections(dungeonSystem);
+        VisualizePlayer(dungeonSystem);
     }
 
     private void VisualizeNodes(DungeonSystem dungeonSystem)
@@ -80,6 +83,24 @@ public class DungeonUISystem : MonoBehaviour
         }
     }
 
+    private void VisualizePlayer(DungeonSystem dungeonSystem)
+    {
+        //임시로 currentNode 받고 있고 이후 필요한 정보 받는 것으로 교체
+        StageNode currentNode = dungeonSystem.GetCurrentNode();
+
+        GameObject playerUIInstance = Instantiate(playerUIPrefab, playerContainer);
+
+        // Player UI 초기화 (이후 Initialize에서 필요한 정보 받게 변경)
+        PlayerUI playerUI = playerUIInstance.GetComponent<PlayerUI>();
+        if (playerUI != null)
+        {
+            playerUI.Initialize(currentNode);
+        }
+
+        RectTransform rt = playerUIInstance.GetComponent<RectTransform>();
+        rt.anchoredPosition = new Vector2(currentNode.x * spacingX, currentNode.y * spacingY);
+    }
+
     private Color GetColorByNodeType(StageNode from, StageNode to)
     {
         if (from.nodeType == StageNodeType.Start || to.nodeType == StageNodeType.Start)
@@ -112,10 +133,20 @@ public class DungeonUISystem : MonoBehaviour
         {
             Destroy(nodeContainer.GetChild(i).gameObject);
         }
-    
+
         for (int i = edgeContainer.childCount - 1; i >= 0; i--)
         {
             Destroy(edgeContainer.GetChild(i).gameObject);
         }
+
+        for (int i = playerContainer.childCount - 1; i >= 0; i--)
+        {
+            Destroy(playerContainer.GetChild(i).gameObject);
+        }
+    }
+
+    // 플레이어 움직임 애니메이션 여기서 구현해야 할 듯
+    private void PlayerMoveAnimation()
+    {
     }
 }
