@@ -6,7 +6,7 @@ using System.Data;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class DungeonUISystem : MonoBehaviour
+public class DungeonUISystem : SingleTon<DungeonUISystem>
 {
     [Header("Prefabs & Containers")]
     [SerializedDictionary("StageNodeType", "Prefab")]
@@ -24,20 +24,18 @@ public class DungeonUISystem : MonoBehaviour
 
     public void VisualizeStage()
     {
-        DungeonSystem dungeonSystem = GameObject.Find("DungeonSystem").GetComponent<DungeonSystem>();
-
         //화면 초기화, Map 초기화
         ClearStageVisuals();
         nodeInstanceMap.Clear();
 
-        VisualizeNodes(dungeonSystem);
-        VisualizeConnections(dungeonSystem);
-        VisualizePlayer(dungeonSystem);
+        VisualizeNodes();
+        VisualizeConnections();
+        VisualizePlayer();
     }
 
-    private void VisualizeNodes(DungeonSystem dungeonSystem)
+    private void VisualizeNodes()
     {
-        foreach (StageNode node in dungeonSystem.CalculateVisibleNodes())
+        foreach (StageNode node in DungeonSystem.Instance.CalculateVisibleNodes())
         {
             GameObject nodePrefab = null;
             if (nodePrefabMap.TryGetValue(node.nodeType, out nodePrefab))
@@ -58,11 +56,11 @@ public class DungeonUISystem : MonoBehaviour
         }
     }
 
-    private void VisualizeConnections(DungeonSystem dungeonSystem)
+    private void VisualizeConnections()
     {
         HashSet<(Vector2, Vector2)> drawn = new();
 
-        foreach (var fromNode in dungeonSystem.GetVisitedNodes())
+        foreach (var fromNode in DungeonSystem.Instance.GetVisitedNodes())
         {
             Vector2 fromPos = nodeInstanceMap[fromNode].GetComponent<RectTransform>().anchoredPosition;
 
@@ -83,10 +81,10 @@ public class DungeonUISystem : MonoBehaviour
         }
     }
 
-    private void VisualizePlayer(DungeonSystem dungeonSystem)
+    private void VisualizePlayer()
     {
         //임시로 currentNode 받고 있고 이후 필요한 정보 받는 것으로 교체
-        StageNode currentNode = dungeonSystem.GetCurrentNode();
+        StageNode currentNode = DungeonSystem.Instance.GetCurrentNode();
 
         GameObject playerUIInstance = Instantiate(playerUIPrefab, playerContainer);
 

@@ -12,12 +12,10 @@ public class PlayerUI : MonoBehaviour
 
     private GameObject infoPanel;
     private StageNode currentNode;
-    private DungeonSystem dungeonSystem;
 
     public void Initialize(StageNode Node)
     {
         this.currentNode = Node;
-        dungeonSystem = GameObject.Find("DungeonSystem").GetComponent<DungeonSystem>();
     }
 
     public void Onclick()

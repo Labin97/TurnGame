@@ -5,17 +5,16 @@ using UnityEngine;
 public class StageNodeUI : MonoBehaviour
 {
     private StageNode stageNode;
-    private DungeonSystem dungeonSystem;
 
     public void Initialize(StageNode node)
     {
         this.stageNode = node;
-        dungeonSystem = GameObject.Find("DungeonSystem").GetComponent<DungeonSystem>();
     }
 
     // 서버 없이 일단 구현
     public void OnClick()
     {
+        DungeonSystem dungeonSystem = DungeonSystem.Instance;
         StageNode currentNode = dungeonSystem.GetCurrentNode();
 
         if (currentNode == stageNode || !dungeonSystem.IsMovableNode(stageNode))

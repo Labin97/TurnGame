@@ -18,7 +18,7 @@ public class StageInfo
     public List<StageNode> nodes;
 }
 
-public class DungeonSystem : MonoBehaviour
+public class DungeonSystem : SingleTon<DungeonSystem>
 {
     private StageInfo currentStageInfo = null;
     private List<StageNode> visitedNodes = new();
@@ -28,8 +28,7 @@ public class DungeonSystem : MonoBehaviour
     {
         InitStage();
 
-        DungeonUISystem dungeonUISystem = GameObject.Find("DungeonUISystem").GetComponent<DungeonUISystem>();
-        dungeonUISystem?.VisualizeStage();
+        DungeonUISystem.Instance?.VisualizeStage();
     }
 
     public StageInfo GetStageInfo()
@@ -68,9 +67,7 @@ public class DungeonSystem : MonoBehaviour
         }
         currentNode = targetNode;
 
-        //?? ?? ??
-        DungeonUISystem dungeonUISystem = GameObject.Find("DungeonUISystem").GetComponent<DungeonUISystem>();
-        dungeonUISystem?.VisualizeStage();
+        DungeonUISystem.Instance?.VisualizeStage();
     }
 
     private void InitStage()
