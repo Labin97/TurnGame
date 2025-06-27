@@ -21,6 +21,9 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
     public float spacingX = 100f;
     public float spacingY = 100f;
 
+    [Header("Scroll View")]
+    public ScrollRect scrollRect;
+
     private Dictionary<StageNode, GameObject> nodeInstanceMap = new();
 
     public void VisualizeStage()
@@ -29,9 +32,23 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
         ClearStageVisuals();
         nodeInstanceMap.Clear();
 
+        SetupMapSize();
+
         VisualizeNodes();
         VisualizeConnections();
         VisualizePlayer();
+
+        // CenterOnCurrentNode();
+    }
+
+    private void SetupMapSize()
+    {
+        StageInfo stageInfo = DungeonSystem.Instance.GetStageInfo();
+
+        float mapWidth = stageInfo.xSize * spacingX;
+        float mapHeight = stageInfo.ySize * spacingY;
+
+        scrollRect.content.sizeDelta = new Vector2(mapWidth, mapHeight);
     }
 
     private void VisualizeNodes()
@@ -97,6 +114,11 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
 
         RectTransform rt = playerUIInstance.GetComponent<RectTransform>();
         rt.anchoredPosition = new Vector2(currentNode.x * spacingX, currentNode.y * spacingY);
+    }
+
+    private void CenterOnCurrentNode()
+    {
+
     }
 
     private Color GetColorByNodeType(StageNode from, StageNode to)
@@ -165,8 +187,4 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
         }
     }
 
-    // 플레이어 움직임 애니메이션 여기서 구현해야 할 듯
-    private void PlayerMoveAnimation()
-    {
-    }
 }
