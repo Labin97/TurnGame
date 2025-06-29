@@ -9,4 +9,9 @@ public class Const
     public static string GateReadySceneName = "GateReadyScene";
     public static string GateSceneName = "GateScene";
     public static string BattleSceneName = "BattleScene";
+
+    public static string MapDataPath = "Assets/Resources/Data/Json/Region";
+    public static string RegionPrefix = "Region";
+    public static string StagePrefix = "Stage";
+    public static string MetaExtension = ".meta";
 }

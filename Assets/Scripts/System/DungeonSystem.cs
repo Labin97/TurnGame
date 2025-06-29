@@ -72,8 +72,7 @@ public class DungeonSystem : SingleTon<DungeonSystem>
 
     private void InitStage()
     {
-        TextAsset textAsset = Resources.Load<TextAsset>("Data/Json/Region/Region1/Stage1");
-        JsonStageInfo json = JsonConvert.DeserializeObject<JsonStageInfo>(textAsset.text);
+        JsonStageInfo json = FileSystem.Instance?.GetJsonStageInfo(1, 1);
         if (json == null)
         {
             Debug.LogError("StageInfo load failed.");
