@@ -17,17 +17,27 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
     public Transform edgeContainer;
     public Transform playerContainer;
 
-    [Header("Spacing (UI distance between nodes)")]
+    [Header ("Visual Settings")]
+    public float lineThickness = 3f;
+    public Color endNodeLineColor = Color.blue;
+    public Color movableLineColor = Color.green;
+    public Color defaultLineColor = new Color(1f, 1f, 1f, 0.4f);
+
+    [Header("Spacing Settings")]
     public float spacingX = 100f;
     public float spacingY = 100f;
-
-    [Header("Map padding")]
-    public float mapPadding = 10f;
+    public float mapPadding = 4f;
 
     [Header("Scroll View")]
     public ScrollRect scrollRect;
 
     private Dictionary<StageNode, GameObject> nodeInstanceMap = new();
+    private RectTransform nodeContainerRT;
+
+    void Start()
+    {
+        nodeContainerRT = nodeContainer.GetComponent<RectTransform>();
+    }
 
     public void VisualizeStage()
     {
@@ -83,8 +93,7 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
         // VisitedNodes 그리기
         foreach (StageNode node in DungeonSystem.Instance.GetVisitedNodes())
         {
-            GameObject nodePrefab = null;
-            if (nodePrefabMap.TryGetValue(node.nodeType, out nodePrefab))
+            if (nodePrefabMap.TryGetValue(node.nodeType, out GameObject nodePrefab))
             {
                 CreateNodeInstance(node, nodePrefab);
             }
@@ -111,7 +120,7 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
 
                 if (!isCurrentConnection && (drawn.Contains(pair) || drawn.Contains(reverse))) continue;
 
-                Color lineColor = GetColorByNodeType(fromNode, toNode);
+                Color lineColor = GetColorByNodeType(fromNode, toNode, currentNode);
                 DrawLine(fromPos, toPos, lineColor);
 
                 drawn.Add(pair);
@@ -175,19 +184,17 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
         nodeInstanceMap[node] = obj;
     }
 
-    private Color GetColorByNodeType(StageNode from, StageNode to)
+    private Color GetColorByNodeType(StageNode from, StageNode to, StageNode currentNode)
     {
-        StageNode currentNode = DungeonSystem.Instance.GetCurrentNode();
-
         // 도착 지점은 blue
         if (from.nodeType == StageNodeType.End || to.nodeType == StageNodeType.End)
-            return Color.blue;
+            return endNodeLineColor;
 
         // 이동 가능 지점은 green
         if (from == currentNode && currentNode.connections.Contains(to))
-            return Color.green;
+            return movableLineColor;
 
-        return new Color(1f, 1f, 1f, 0.4f); // 기본: 반투명 흰색
+        return defaultLineColor;
     }
 
     private void DrawLine(Vector2 start, Vector2 end, Color lineColor)
@@ -200,7 +207,7 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
 
         RectTransform rt = img.GetComponent<RectTransform>();
         rt.pivot = new Vector2(0, 0.5f);
-        rt.sizeDelta = new Vector2(Vector2.Distance(start, end), 3f);
+        rt.sizeDelta = new Vector2(Vector2.Distance(start, end), lineThickness);
         rt.anchoredPosition = start;
 
         float angle = Mathf.Atan2(end.y - start.y, end.x - start.x) * Mathf.Rad2Deg;
@@ -209,7 +216,7 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
 
     private Vector2 ConvertCoordinates(float x, float y)
     {
-        Vector2 containerSize = nodeContainer.GetComponent<RectTransform>().rect.size;
+        Vector2 containerSize = nodeContainerRT.rect.size;
 
         float newX = (x + mapPadding / 2) * spacingX - containerSize.x * 0.5f;
         float newY = (y + mapPadding / 2) * spacingY - containerSize.y * 0.5f;
