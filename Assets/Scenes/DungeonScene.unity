@@ -300,7 +300,7 @@ MonoBehaviour:
   m_Content: {fileID: 1299454566}
   m_Horizontal: 1
   m_Vertical: 1
-  m_MovementType: 0
+  m_MovementType: 2
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
@@ -525,27 +525,27 @@ MonoBehaviour:
     - Key: 0
       Value: {fileID: 3854277535865354811, guid: 4ede6cbde59bc7640b5c0ee1523aaa90, type: 3}
     - Key: 1
-      Value: {fileID: 3854277535865354811, guid: f41e6e3673223fa46b2b40f93930f440, type: 3}
+      Value: {fileID: 3854277535865354811, guid: b716949ad748e06409b325fe41335b4f, type: 3}
     - Key: 2
-      Value: {fileID: 3854277535865354811, guid: f41e6e3673223fa46b2b40f93930f440, type: 3}
+      Value: {fileID: 3854277535865354811, guid: f6f577f1e3471654eae9454141b0da89, type: 3}
     - Key: 3
-      Value: {fileID: 3854277535865354811, guid: f41e6e3673223fa46b2b40f93930f440, type: 3}
+      Value: {fileID: 3854277535865354811, guid: fd2c107a80890274b831d547903bca48, type: 3}
     - Key: 4
-      Value: {fileID: 3854277535865354811, guid: f41e6e3673223fa46b2b40f93930f440, type: 3}
+      Value: {fileID: 3854277535865354811, guid: 6d956fa98fd224b45902accbafedb481, type: 3}
     - Key: 5
-      Value: {fileID: 3854277535865354811, guid: f41e6e3673223fa46b2b40f93930f440, type: 3}
+      Value: {fileID: 3854277535865354811, guid: ec9744175b6b0bb478bb39bc27d477a6, type: 3}
     - Key: 6
       Value: {fileID: 3854277535865354811, guid: 4e5c6f073554c674aba81a038bf081f9, type: 3}
     - Key: 7
-      Value: {fileID: 3854277535865354811, guid: f41e6e3673223fa46b2b40f93930f440, type: 3}
+      Value: {fileID: 3854277535865354811, guid: d1bad5bc136920446ace5e163644c1d7, type: 3}
   playerUIPrefab: {fileID: 4985139024988952478, guid: 482db9a04147f8c4abfc9a9f388f6076, type: 3}
-  UnknownNodePrefab: {fileID: 0}
+  UnknownNodePrefab: {fileID: 3854277535865354811, guid: f41e6e3673223fa46b2b40f93930f440, type: 3}
   nodeContainer: {fileID: 1757183862}
   edgeContainer: {fileID: 1074266415}
   playerContainer: {fileID: 232339355}
   spacingX: 100
   spacingY: 100
-  scrollRect: {fileID: 0}
+  scrollRect: {fileID: 746772125}
 --- !u!4 &1255408073
 Transform:
   m_ObjectHideFlags: 0
