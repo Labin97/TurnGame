@@ -21,6 +21,9 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
     public float spacingX = 100f;
     public float spacingY = 100f;
 
+    [Header("Map padding")]
+    public float mapPadding = 10f;
+
     [Header("Scroll View")]
     public ScrollRect scrollRect;
 
@@ -38,15 +41,33 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
         VisualizeConnections();
         VisualizePlayer();
 
-        // CenterOnCurrentNode();
+        CenterOnCurrentNode();
+    }
+
+    private void ClearStageVisuals()
+    {
+        for (int i = nodeContainer.childCount - 1; i >= 0; i--)
+        {
+            Destroy(nodeContainer.GetChild(i).gameObject);
+        }
+
+        for (int i = edgeContainer.childCount - 1; i >= 0; i--)
+        {
+            Destroy(edgeContainer.GetChild(i).gameObject);
+        }
+
+        for (int i = playerContainer.childCount - 1; i >= 0; i--)
+        {
+            Destroy(playerContainer.GetChild(i).gameObject);
+        }
     }
 
     private void SetupMapSize()
     {
         StageInfo stageInfo = DungeonSystem.Instance.GetStageInfo();
 
-        float mapWidth = stageInfo.xSize * spacingX;
-        float mapHeight = stageInfo.ySize * spacingY;
+        float mapWidth = (stageInfo.xSize + mapPadding) * spacingX;
+        float mapHeight = (stageInfo.ySize + mapPadding) * spacingY;
 
         scrollRect.content.sizeDelta = new Vector2(mapWidth, mapHeight);
     }
@@ -112,13 +133,46 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
             playerUI.Initialize(currentNode);
         }
 
+        Vector2 position = ConvertCoordinates(currentNode.x, currentNode.y);
         RectTransform rt = playerUIInstance.GetComponent<RectTransform>();
-        rt.anchoredPosition = new Vector2(currentNode.x * spacingX, currentNode.y * spacingY);
+        rt.anchoredPosition = position;
     }
 
     private void CenterOnCurrentNode()
     {
+        StageNode currentNode = DungeonSystem.Instance.GetCurrentNode();
+    
+        if (currentNode == null || !nodeInstanceMap.ContainsKey(currentNode))
+            return;
 
+        RectTransform currentNodeRT = nodeInstanceMap[currentNode].GetComponent<RectTransform>();
+        Vector2 nodePosition = currentNodeRT.anchoredPosition;
+
+        Vector2 contentSize = scrollRect.content.sizeDelta;
+
+        // 정규화된 X, Y 위치 계산
+        float normalizedPositionX = Mathf.Clamp01((nodePosition.x + contentSize.x * 0.5f) / contentSize.x);
+        float normalizedPositionY = Mathf.Clamp01((nodePosition.y + contentSize.y * 0.5f) / contentSize.y);
+
+        scrollRect.normalizedPosition = new Vector2(normalizedPositionX, normalizedPositionY);
+    }
+
+    private void CreateNodeInstance(StageNode node, GameObject prefab)
+    {
+        GameObject obj = Instantiate(prefab, nodeContainer);
+        RectTransform rt = obj.GetComponent<RectTransform>();
+
+        Vector2 position = ConvertCoordinates(node.x, node.y);
+        rt.anchoredPosition = position;
+
+        //스테이지 노드 UI 초기화
+        StageNodeUI nodeUI = obj.GetComponent<StageNodeUI>();
+        if (nodeUI != null)
+        {
+            nodeUI.Initialize(node);
+        }
+
+        nodeInstanceMap[node] = obj;
     }
 
     private Color GetColorByNodeType(StageNode from, StageNode to)
@@ -153,38 +207,13 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
         rt.rotation = Quaternion.Euler(0, 0, angle);
     }
 
-    private void CreateNodeInstance(StageNode node, GameObject prefab)
+    private Vector2 ConvertCoordinates(float x, float y)
     {
-        GameObject obj = Instantiate(prefab, nodeContainer);
-        RectTransform rt = obj.GetComponent<RectTransform>();
-        rt.anchoredPosition = new Vector2(node.x * spacingX, node.y * spacingY);
+        Vector2 containerSize = nodeContainer.GetComponent<RectTransform>().rect.size;
 
-        //스테이지 노드 UI 초기화
-        StageNodeUI nodeUI = obj.GetComponent<StageNodeUI>();
-        if (nodeUI != null)
-        {
-            nodeUI.Initialize(node);
-        }
+        float newX = (x + mapPadding / 2) * spacingX - containerSize.x * 0.5f;
+        float newY = (y + mapPadding / 2) * spacingY - containerSize.y * 0.5f;
 
-        nodeInstanceMap[node] = obj;
+        return new Vector2(newX, newY);
     }
-
-    private void ClearStageVisuals()
-    {
-        for (int i = nodeContainer.childCount - 1; i >= 0; i--)
-        {
-            Destroy(nodeContainer.GetChild(i).gameObject);
-        }
-
-        for (int i = edgeContainer.childCount - 1; i >= 0; i--)
-        {
-            Destroy(edgeContainer.GetChild(i).gameObject);
-        }
-
-        for (int i = playerContainer.childCount - 1; i >= 0; i--)
-        {
-            Destroy(playerContainer.GetChild(i).gameObject);
-        }
-    }
-
 }
