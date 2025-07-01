@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 /**
  * MapData, Resource 등을 로드하여 사용하는 매니저
  */ 
-public class FileSystem : SingleTon<FileSystem>
+public class FileSystem : Singleton<FileSystem>
 {
     public static Dictionary<(int regionId, int stageId), JsonStageInfo> mapDatas = new Dictionary<(int regionId, int stageId), JsonStageInfo>();
     void Start()

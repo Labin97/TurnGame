@@ -1,8 +1,6 @@
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class StageNode
 {
@@ -19,11 +17,15 @@ public class StageInfo
     public List<StageNode> nodes;
 }
 
-public class DungeonSystem : SingleTon<DungeonSystem>
+public class DungeonSystem : Singleton<DungeonSystem>
 {
     private StageInfo currentStageInfo = null;
     private List<StageNode> visitedNodes = new();
     private StageNode currentNode = null;
+
+    public StageInfo CurrentStageInfo => currentStageInfo;
+    public StageNode CurrentNode => currentNode;
+    public List<StageNode> VisitedNodes => visitedNodes;
 
     void Start()
     {
@@ -32,20 +34,6 @@ public class DungeonSystem : SingleTon<DungeonSystem>
         DungeonUISystem.Instance?.VisualizeStage();
     }
 
-    public StageInfo GetStageInfo()
-    {
-        return currentStageInfo;
-    }
-
-    public StageNode GetCurrentNode()
-    {
-        return currentNode;
-    }
-
-    public List<StageNode> GetVisitedNodes()
-    {
-        return visitedNodes;
-    }
 
     public bool IsVisitedNode(StageNode node)
     {
@@ -96,7 +84,6 @@ public class DungeonSystem : SingleTon<DungeonSystem>
             nodes = new List<StageNode>()
         };
 
-        // 畴靛 积己
         foreach (JsonStageNode jsonNode in json.nodes)
         {
             StageNode newNode = new StageNode
@@ -115,7 +102,6 @@ public class DungeonSystem : SingleTon<DungeonSystem>
             }
         }
 
-        // 楷搬 积己
         foreach (JsonStageNodeConnection conn in json.connections)
         {
             StageNode from = currentStageInfo.nodes.Find(n => n.x == conn.fromX && n.y == conn.fromY);
@@ -127,7 +113,7 @@ public class DungeonSystem : SingleTon<DungeonSystem>
                 continue;
             }
 
-            // ??? ??? ??
+            // ?? ??? ??? ??
             if (!from.connections.Contains(to))
                 from.connections.Add(to);
 

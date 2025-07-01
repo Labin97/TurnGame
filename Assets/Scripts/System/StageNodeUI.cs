@@ -15,9 +15,12 @@ public class StageNodeUI : MonoBehaviour
     public void OnClick()
     {
         DungeonSystem dungeonSystem = DungeonSystem.Instance;
-        StageNode currentNode = dungeonSystem.GetCurrentNode();
+        StageNode currentNode = dungeonSystem.CurrentNode;
 
-        if (DungeonUISystem.Instance.GetIsMoving()) return;
+        if (DungeonUISystem.Instance.IsMoving) return;
+
+        //만약 PlayerInfoPanel이 열려있으면 닫기
+        ClosePlayerInfoPanel();
 
         if (currentNode == stageNode || !dungeonSystem.IsMovableNode(stageNode))
         {
@@ -33,6 +36,15 @@ public class StageNodeUI : MonoBehaviour
         {
             //이벤트 O
             dungeonSystem.MoveToNode(stageNode);
+        }
+    }
+
+    private void ClosePlayerInfoPanel()
+    {
+        PlayerUI playerUI = FindFirstObjectByType<PlayerUI>();
+        if (playerUI != null && DungeonSystem.Instance.IsMovableNode(stageNode))
+        {
+            playerUI.HideInfo();
         }
     }
 }

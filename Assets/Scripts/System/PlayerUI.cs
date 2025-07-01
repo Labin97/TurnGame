@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,18 +8,20 @@ public class PlayerUI : MonoBehaviour
 {
     [Header("Info Panel")]
     public GameObject infoPanelPrefab;
+    [SerializeField] private float infoPanelOffsetY = 100f;
+
 
     private GameObject infoPanel;
     private StageNode currentNode;
 
-    public void Initialize(StageNode Node)
+    public void Initialize(StageNode node)
     {
-        this.currentNode = Node;
+        this.currentNode = node;
     }
 
-    public void Onclick()
+    public void OnClick()
     {
-        if (DungeonUISystem.Instance.GetIsMoving()) return;
+        if (DungeonUISystem.Instance.IsMoving) return;
 
         if (infoPanel == null)
         {
@@ -36,7 +37,7 @@ public class PlayerUI : MonoBehaviour
     {
         infoPanel = Instantiate(infoPanelPrefab, transform);
 
-        infoPanel.transform.localPosition = new Vector2(0, 100);
+        infoPanel.transform.localPosition = new Vector2(0, infoPanelOffsetY);
 
         TextMeshProUGUI infoText = infoPanel.GetComponentInChildren<TextMeshProUGUI>();
 
@@ -47,7 +48,7 @@ public class PlayerUI : MonoBehaviour
         }
     }
 
-    private void HideInfo()
+    public void HideInfo()
     {
         Destroy(infoPanel);
         infoPanel = null;

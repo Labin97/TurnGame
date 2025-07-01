@@ -2,17 +2,16 @@ using AYellowpaper.SerializedCollections;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class DungeonUISystem : SingleTon<DungeonUISystem>
+public class DungeonUISystem : Singleton<DungeonUISystem>
 {
     [Header("Prefabs & Containers")]
     [SerializedDictionary("StageNodeType", "Prefab")]
     public SerializedDictionary<StageNodeType, GameObject> nodePrefabMap;
     public GameObject playerUIPrefab;
-    public GameObject UnknownNodePrefab;
+    public GameObject unknownNodePrefab;
     public Transform nodeContainer;
     public Transform edgeContainer;
     public Transform playerContainer;
@@ -31,19 +30,20 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
     [Header("Scroll View")]
     public ScrollRect scrollRect;
 
+    [Header("Animation Settings")]
+    public float moveDuration = 0.3f;
+
     private Dictionary<StageNode, GameObject> nodeInstanceMap = new();
     private RectTransform nodeContainerRT;
     private bool isMoving = false;
+
+    public bool IsMoving => isMoving;
 
     void Start()
     {
         nodeContainerRT = nodeContainer.GetComponent<RectTransform>();
     }
 
-    public bool GetIsMoving()
-    {
-        return isMoving;
-    }
 
     public void VisualizeStage()
     {
@@ -80,7 +80,13 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
 
     private void SetupMapSize()
     {
-        StageInfo stageInfo = DungeonSystem.Instance.GetStageInfo();
+        StageInfo stageInfo = DungeonSystem.Instance.CurrentStageInfo;
+
+        if (stageInfo == null)
+        {
+            Debug.LogError("StageInfo is null");
+            return;
+        }
 
         float mapWidth = (stageInfo.xSize + mapPadding) * spacingX;
         float mapHeight = (stageInfo.ySize + mapPadding) * spacingY;
@@ -93,11 +99,11 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
         // UnknownNodes 그리기
         foreach (StageNode node in DungeonSystem.Instance.CalculateUnknownNodes())
         {
-            CreateNodeInstance(node, UnknownNodePrefab);
+            CreateNodeInstance(node, unknownNodePrefab);
         }
 
         // VisitedNodes 그리기
-        foreach (StageNode node in DungeonSystem.Instance.GetVisitedNodes())
+        foreach (StageNode node in DungeonSystem.Instance.VisitedNodes)
         {
             if (nodePrefabMap.TryGetValue(node.nodeType, out GameObject nodePrefab))
             {
@@ -109,9 +115,9 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
     private void VisualizeConnections()
     {
         HashSet<(Vector2, Vector2)> drawn = new();
-        StageNode currentNode = DungeonSystem.Instance.GetCurrentNode();
+        StageNode currentNode = DungeonSystem.Instance.CurrentNode;
 
-        foreach (var fromNode in DungeonSystem.Instance.GetVisitedNodes())
+        foreach (var fromNode in DungeonSystem.Instance.VisitedNodes)
         {
             Vector2 fromPos = nodeInstanceMap[fromNode].GetComponent<RectTransform>().anchoredPosition;
 
@@ -137,7 +143,7 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
     private void VisualizePlayer()
     {
         //임시로 currentNode 받고 있고 이후 필요한 정보 받는 것으로 교체
-        StageNode currentNode = DungeonSystem.Instance.GetCurrentNode();
+        StageNode currentNode = DungeonSystem.Instance.CurrentNode;
 
         GameObject playerUIInstance = Instantiate(playerUIPrefab, playerContainer);
 
@@ -155,7 +161,7 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
 
     private void CenterOnCurrentNode()
     {
-        StageNode currentNode = DungeonSystem.Instance.GetCurrentNode();
+        StageNode currentNode = DungeonSystem.Instance.CurrentNode;
 
         if (currentNode == null || !nodeInstanceMap.ContainsKey(currentNode))
             return;
@@ -235,8 +241,14 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
 
     private IEnumerator MovePlayerCoroutine(StageNode fromNode, StageNode toNode, System.Action onComplete)
     {
-        GameObject PlayerUI = playerContainer.GetChild(0).gameObject;
-        RectTransform playerRT = PlayerUI.GetComponent<RectTransform>();
+        if (playerContainer.childCount == 0)
+        {
+            Debug.LogError("No Player UI found");
+            yield break;
+        }
+
+        GameObject playerUI = playerContainer.GetChild(0).gameObject;
+        RectTransform playerRT = playerUI.GetComponent<RectTransform>();
 
         Vector2 startPos = ConvertCoordinates(fromNode.x, fromNode.y);
         Vector2 endPos = ConvertCoordinates(toNode.x, toNode.y);
@@ -244,13 +256,12 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
         Vector2 startScrollPos = scrollRect.normalizedPosition;
         Vector2 endScrollPos = CalculateScrollPosition(toNode);
 
-        float duration = 0.5f;
         float elapsed = 0f;
 
-        while (elapsed < duration)
+        while (elapsed < moveDuration)
         {
             elapsed += Time.deltaTime;
-            float t = elapsed / duration;
+            float t = elapsed / moveDuration;
 
             // Ease-out 곡선 적용
             t = 1f - (1f - t) * (1f - t);
