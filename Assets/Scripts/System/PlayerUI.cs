@@ -20,6 +20,8 @@ public class PlayerUI : MonoBehaviour
 
     public void Onclick()
     {
+        if (DungeonUISystem.Instance.GetIsMoving()) return;
+
         if (infoPanel == null)
         {
             ShowInfo();

@@ -17,6 +17,8 @@ public class StageNodeUI : MonoBehaviour
         DungeonSystem dungeonSystem = DungeonSystem.Instance;
         StageNode currentNode = dungeonSystem.GetCurrentNode();
 
+        if (DungeonUISystem.Instance.GetIsMoving()) return;
+
         if (currentNode == stageNode || !dungeonSystem.IsMovableNode(stageNode))
         {
             return;

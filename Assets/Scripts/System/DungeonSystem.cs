@@ -68,7 +68,7 @@ public class DungeonSystem : SingleTon<DungeonSystem>
             return;
         }
 
-        DungeonUISystem.Instance?.AnimatePlayerMovement(currentNode, targetNode, ()=>
+        DungeonUISystem.Instance?.AnimatePlayerMove(currentNode, targetNode, ()=>
         {
             if (!visitedNodes.Contains(targetNode))
             {

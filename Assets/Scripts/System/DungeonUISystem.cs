@@ -33,10 +33,16 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
 
     private Dictionary<StageNode, GameObject> nodeInstanceMap = new();
     private RectTransform nodeContainerRT;
+    private bool isMoving = false;
 
     void Start()
     {
         nodeContainerRT = nodeContainer.GetComponent<RectTransform>();
+    }
+
+    public bool GetIsMoving()
+    {
+        return isMoving;
     }
 
     public void VisualizeStage()
@@ -217,9 +223,14 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
         return new Vector2(newX, newY);
     }
 
-    public void AnimatePlayerMovement(StageNode fromNode, StageNode toNode, System.Action onComplete)
+    public void AnimatePlayerMove(StageNode fromNode, StageNode toNode, System.Action onComplete)
     {
-        StartCoroutine(MovePlayerCoroutine(fromNode, toNode, onComplete));
+        isMoving = true;
+        StartCoroutine(MovePlayerCoroutine(fromNode, toNode, () =>
+        {
+            isMoving = false;
+            onComplete?.Invoke();
+        }));
     }
 
     private IEnumerator MovePlayerCoroutine(StageNode fromNode, StageNode toNode, System.Action onComplete)
