@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -61,13 +62,22 @@ public class DungeonSystem : SingleTon<DungeonSystem>
 
     public void MoveToNode(StageNode targetNode)
     {
-        if (!visitedNodes.Contains(targetNode))
+        if (targetNode == null || currentNode == null)
         {
-            visitedNodes.Add(targetNode);
+            Debug.LogError("Invalid node for movement");
+            return;
         }
-        currentNode = targetNode;
 
-        DungeonUISystem.Instance?.VisualizeStage();
+        DungeonUISystem.Instance?.AnimatePlayerMovement(currentNode, targetNode, ()=>
+        {
+            if (!visitedNodes.Contains(targetNode))
+            {
+                visitedNodes.Add(targetNode);
+            }
+            currentNode = targetNode;
+
+            DungeonUISystem.Instance?.VisualizeStage();
+        });
     }
 
     private void InitStage()

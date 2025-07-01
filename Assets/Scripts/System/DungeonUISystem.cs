@@ -17,7 +17,7 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
     public Transform edgeContainer;
     public Transform playerContainer;
 
-    [Header ("Visual Settings")]
+    [Header("Visual Settings")]
     public float lineThickness = 3f;
     public Color endNodeLineColor = Color.blue;
     public Color movableLineColor = Color.green;
@@ -150,20 +150,13 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
     private void CenterOnCurrentNode()
     {
         StageNode currentNode = DungeonSystem.Instance.GetCurrentNode();
-    
+
         if (currentNode == null || !nodeInstanceMap.ContainsKey(currentNode))
             return;
 
-        RectTransform currentNodeRT = nodeInstanceMap[currentNode].GetComponent<RectTransform>();
-        Vector2 nodePosition = currentNodeRT.anchoredPosition;
+        Vector2 scrollPos = CalculateScrollPosition(currentNode);
 
-        Vector2 contentSize = scrollRect.content.sizeDelta;
-
-        // 정규화된 X, Y 위치 계산
-        float normalizedPositionX = Mathf.Clamp01((nodePosition.x + contentSize.x * 0.5f) / contentSize.x);
-        float normalizedPositionY = Mathf.Clamp01((nodePosition.y + contentSize.y * 0.5f) / contentSize.y);
-
-        scrollRect.normalizedPosition = new Vector2(normalizedPositionX, normalizedPositionY);
+        scrollRect.normalizedPosition = scrollPos;
     }
 
     private void CreateNodeInstance(StageNode node, GameObject prefab)
@@ -223,4 +216,60 @@ public class DungeonUISystem : SingleTon<DungeonUISystem>
 
         return new Vector2(newX, newY);
     }
+
+    public void AnimatePlayerMovement(StageNode fromNode, StageNode toNode, System.Action onComplete)
+    {
+        StartCoroutine(MovePlayerCoroutine(fromNode, toNode, onComplete));
+    }
+
+    private IEnumerator MovePlayerCoroutine(StageNode fromNode, StageNode toNode, System.Action onComplete)
+    {
+        GameObject PlayerUI = playerContainer.GetChild(0).gameObject;
+        RectTransform playerRT = PlayerUI.GetComponent<RectTransform>();
+
+        Vector2 startPos = ConvertCoordinates(fromNode.x, fromNode.y);
+        Vector2 endPos = ConvertCoordinates(toNode.x, toNode.y);
+
+        Vector2 startScrollPos = scrollRect.normalizedPosition;
+        Vector2 endScrollPos = CalculateScrollPosition(toNode);
+
+        float duration = 0.5f;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+
+            // Ease-out 곡선 적용
+            t = 1f - (1f - t) * (1f - t);
+
+            playerRT.anchoredPosition = Vector2.Lerp(startPos, endPos, t);
+
+            scrollRect.normalizedPosition = Vector2.Lerp(startScrollPos, endScrollPos, t);
+            yield return null;
+        }
+
+        // 최종 위치 설정
+        playerRT.anchoredPosition = endPos;
+        scrollRect.normalizedPosition = endScrollPos;
+
+        onComplete?.Invoke();
+    }
+
+    private Vector2 CalculateScrollPosition(StageNode targetNode)
+    {
+        if (!nodeInstanceMap.ContainsKey(targetNode))
+            return scrollRect.normalizedPosition;
+
+        RectTransform targetNodeRT = nodeInstanceMap[targetNode].GetComponent<RectTransform>();
+        Vector2 nodePosition = targetNodeRT.anchoredPosition;
+        Vector2 contentSize = scrollRect.content.sizeDelta;
+
+        float normalizedPositionX = Mathf.Clamp01((nodePosition.x + contentSize.x * 0.5f) / contentSize.x);
+        float normalizedPositionY = Mathf.Clamp01((nodePosition.y + contentSize.y * 0.5f) / contentSize.y);
+
+        return new Vector2(normalizedPositionX, normalizedPositionY);
+    }
+
 }
