@@ -8,7 +8,7 @@ using System;
 
 public class MapEditor : EditorWindow
 {
-    #region Variables
+    #region Fields
     private JsonStageInfo stageInfo;
     private List<JsonStageNode> nodes = new List<JsonStageNode>();
     private List<JsonStageNodeConnection> connections = new List<JsonStageNodeConnection>();

@@ -10,7 +10,6 @@ public class PlayerUI : MonoBehaviour
     public GameObject infoPanelPrefab;
     [SerializeField] private float infoPanelOffsetY = 100f;
 
-
     private GameObject infoPanel;
     private StageNode currentNode;
 
@@ -21,7 +20,7 @@ public class PlayerUI : MonoBehaviour
 
     public void OnClick()
     {
-        if (DungeonUISystem.Instance.IsMoving) return;
+        if (DungeonUISystem.Instance.IsMoving || DungeonSystem.Instance.IsAutoMoving) return;
 
         if (infoPanel == null)
         {
@@ -50,7 +49,10 @@ public class PlayerUI : MonoBehaviour
 
     public void HideInfo()
     {
-        Destroy(infoPanel);
-        infoPanel = null;
+        if (infoPanel != null)
+        {
+            Destroy(infoPanel);
+            infoPanel = null;
+        }
     }
 }

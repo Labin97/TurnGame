@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -19,33 +20,65 @@ public class StageInfo
 
 public class DungeonSystem : Singleton<DungeonSystem>
 {
+    #region Fields
     private StageInfo currentStageInfo = null;
     private List<StageNode> visitedNodes = new();
     private StageNode currentNode = null;
+    private bool isAutoMoving = false;
+    #endregion
 
+    #region Properties
     public StageInfo CurrentStageInfo => currentStageInfo;
     public StageNode CurrentNode => currentNode;
     public List<StageNode> VisitedNodes => visitedNodes;
+    public bool IsAutoMoving => isAutoMoving;
+    #endregion
 
+    #region Unity Lifecycle
     void Start()
     {
         InitStage();
 
         DungeonUISystem.Instance?.VisualizeStage();
     }
+    #endregion
 
-
+    #region Pulbic Methods
     public bool IsVisitedNode(StageNode node)
     {
         return visitedNodes.Contains(node);
     }
 
-    public bool IsMovableNode(StageNode node)
+    public bool IsNeighborNode(StageNode node)
     {
         if (currentNode == null)
             return false;
         else
             return currentNode.connections.Contains(node);
+    }
+
+    public List<StageNode> CalculateUnknownNodes()
+    {
+        HashSet<StageNode> visibleSet = new HashSet<StageNode>();
+
+        if (visitedNodes == null)
+        {
+            Debug.LogError("GetVisibleNodes failed - visitedNodes is null");
+            return new List<StageNode>();
+        }
+
+        foreach (StageNode visitedNode in visitedNodes)
+        {
+            foreach (StageNode connectedNode in visitedNode.connections)
+            {
+                if (!visitedNodes.Contains(connectedNode))
+                {
+                    visibleSet.Add(connectedNode);
+                }
+            }
+        }
+
+        return new List<StageNode>(visibleSet);
     }
 
     public void MoveToNode(StageNode targetNode)
@@ -56,7 +89,7 @@ public class DungeonSystem : Singleton<DungeonSystem>
             return;
         }
 
-        DungeonUISystem.Instance?.AnimatePlayerMove(currentNode, targetNode, ()=>
+        DungeonUISystem.Instance?.AnimatePlayerMove(currentNode, targetNode, () =>
         {
             if (!visitedNodes.Contains(targetNode))
             {
@@ -68,6 +101,21 @@ public class DungeonSystem : Singleton<DungeonSystem>
         });
     }
 
+    public void AutoMoving(StageNode targetNode)
+    {
+        List<StageNode> path = CalculateAutoMovingPath(currentNode, targetNode);
+
+        if (path == null)
+        {
+            Debug.LogError("No visited path");
+            return;
+        }
+
+        StartCoroutine(AutoClick(path));
+    }
+    #endregion
+
+    #region Private Methods
     private void InitStage()
     {
         JsonStageInfo json = FileSystem.Instance?.GetJsonStageInfo(1, 1);
@@ -109,11 +157,10 @@ public class DungeonSystem : Singleton<DungeonSystem>
 
             if (from == null || to == null)
             {
-                Debug.LogWarning($"Invalid connection: ({conn.fromX},{conn.fromY}) → ({conn.toX},{conn.toY})");
+                Debug.LogWarning($"Invalid connection: ({conn.fromX},{conn.fromY}) ¡æ ({conn.toX},{conn.toY})");
                 continue;
             }
 
-            // ?? ??? ??? ??
             if (!from.connections.Contains(to))
                 from.connections.Add(to);
 
@@ -124,28 +171,91 @@ public class DungeonSystem : Singleton<DungeonSystem>
         Debug.Log("InitStage Success");
     }
 
-    public List<StageNode> CalculateUnknownNodes()
+    private List<StageNode> CalculateAutoMovingPath(StageNode start, StageNode target)
     {
-        HashSet<StageNode> visibleSet = new HashSet<StageNode>();
+        Queue<StageNode> queue = new Queue<StageNode>();
+        Dictionary<StageNode, StageNode> cameFrom = new Dictionary<StageNode, StageNode>();
+        HashSet<StageNode> explored = new HashSet<StageNode>();
 
-        if (visitedNodes == null)
-        {
-            Debug.LogError("GetVisibleNodes failed - visitedNodes is null");
-            return new List<StageNode>();
-        }
+        queue.Enqueue(start);
+        explored.Add(start);
+        cameFrom[start] = null;
 
-        foreach (StageNode visitedNode in visitedNodes)
+        while (queue.Count > 0)
         {
-            foreach (StageNode connectedNode in visitedNode.connections)
+            StageNode current = queue.Dequeue();
+
+            foreach (StageNode neighbor in current.connections)
             {
-                if (!visitedNodes.Contains(connectedNode))
+                if (!IsVisitedNode(neighbor) || explored.Contains(neighbor))
+                    continue;
+
+                explored.Add(neighbor);
+                cameFrom[neighbor] = current;
+                queue.Enqueue(neighbor);
+
+                if (neighbor == target)
                 {
-                    visibleSet.Add(connectedNode);
+                    return ReconstructPath(cameFrom, start, target);
                 }
             }
         }
 
-        return new List<StageNode>(visibleSet);
+        return null;
     }
 
+    private List<StageNode> ReconstructPath(Dictionary<StageNode, StageNode> cameFrom, StageNode start, StageNode target)
+    {
+        List<StageNode> path = new List<StageNode>();
+        StageNode current = target;
+
+        while (current != null)
+        {
+            path.Add(current);
+            current = cameFrom[current];
+        }
+
+        path.Reverse();
+        return path;
+    }
+
+    // 이후에 힐 노드 재방문 이벤트로 변경
+    private bool StopAutoMoving(StageNode node)
+    {
+        // return node.nodeType == StageNodeType.Event;
+        return false;
+    }
+    #endregion
+
+    #region Coroutines
+    private IEnumerator AutoClick(List<StageNode> path)
+    {
+        isAutoMoving = true;
+
+        for (int i = 1; i < path.Count; i++)
+        {
+            StageNode nextNode = path[i];
+            StageNodeUI nodeUI = DungeonUISystem.Instance.FindNodeUI(nextNode);
+
+            if (nodeUI != null)
+            {
+                nodeUI.ProcessNodeClick();
+            }
+            else
+            {
+                Debug.LogError("Cannot find Node UI");
+                break;
+            }
+
+            yield return new WaitUntil(() => !DungeonUISystem.Instance.IsMoving);
+
+            if (StopAutoMoving(nextNode))
+            {
+                break;
+            }
+        }
+
+        isAutoMoving = false;
+    }
+    #endregion
 }

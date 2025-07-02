@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 public class DungeonUISystem : Singleton<DungeonUISystem>
 {
+    #region Inspector Fields
     [Header("Prefabs & Containers")]
     [SerializedDictionary("StageNodeType", "Prefab")]
     public SerializedDictionary<StageNodeType, GameObject> nodePrefabMap;
@@ -32,24 +33,32 @@ public class DungeonUISystem : Singleton<DungeonUISystem>
 
     [Header("Animation Settings")]
     public float moveDuration = 0.3f;
+    #endregion
 
+    #region Fields
     private Dictionary<StageNode, GameObject> nodeInstanceMap = new();
     private RectTransform nodeContainerRT;
+    private GameObject playerUIObject;
     private bool isMoving = false;
+    #endregion
 
+    #region Properties
     public bool IsMoving => isMoving;
+    public GameObject PlayerUIObject => playerUIObject;
+    #endregion
 
+    #region  Unity Lifecycle
     void Start()
     {
         nodeContainerRT = nodeContainer.GetComponent<RectTransform>();
     }
+    #endregion
 
-
+    #region Public Methods
     public void VisualizeStage()
     {
         //화면 초기화, Map 초기화
         ClearStageVisuals();
-        nodeInstanceMap.Clear();
 
         SetupMapSize();
 
@@ -60,8 +69,35 @@ public class DungeonUISystem : Singleton<DungeonUISystem>
         CenterOnCurrentNode();
     }
 
+    public void AnimatePlayerMove(StageNode fromNode, StageNode toNode, System.Action onComplete)
+    {
+        isMoving = true;
+        StartCoroutine(MovePlayerCoroutine(fromNode, toNode, () =>
+        {
+            isMoving = false;
+            onComplete?.Invoke();
+        }));
+    }
+
+    public StageNodeUI FindNodeUI(StageNode targetNode)
+    {
+        if (!nodeInstanceMap.ContainsKey(targetNode))
+        {
+            Debug.LogError("Find Node UI Error");
+            return null;
+        }
+
+        GameObject nodeObj = nodeInstanceMap[targetNode];
+        return nodeObj.GetComponent<StageNodeUI>();
+    }
+    #endregion
+
+    #region VisualizeStage
     private void ClearStageVisuals()
     {
+        nodeInstanceMap.Clear();
+
+        // Player는 초기화 하지 않음 (AutoMoving 때문에)
         for (int i = nodeContainer.childCount - 1; i >= 0; i--)
         {
             Destroy(nodeContainer.GetChild(i).gameObject);
@@ -70,11 +106,6 @@ public class DungeonUISystem : Singleton<DungeonUISystem>
         for (int i = edgeContainer.childCount - 1; i >= 0; i--)
         {
             Destroy(edgeContainer.GetChild(i).gameObject);
-        }
-
-        for (int i = playerContainer.childCount - 1; i >= 0; i--)
-        {
-            Destroy(playerContainer.GetChild(i).gameObject);
         }
     }
 
@@ -145,30 +176,26 @@ public class DungeonUISystem : Singleton<DungeonUISystem>
         //임시로 currentNode 받고 있고 이후 필요한 정보 받는 것으로 교체
         StageNode currentNode = DungeonSystem.Instance.CurrentNode;
 
-        GameObject playerUIInstance = Instantiate(playerUIPrefab, playerContainer);
+        //만약 없으면 생성하고 있으면 가져옴
+        if (playerContainer.childCount > 0)
+        {
+            playerUIObject = playerContainer.GetChild(0).gameObject;
+        }
+        else
+        {
+            playerUIObject = Instantiate(playerUIPrefab, playerContainer);
+        }
 
         // Player UI 초기화 (이후 Initialize에서 필요한 정보 받게 변경)
-        PlayerUI playerUI = playerUIInstance.GetComponent<PlayerUI>();
+        PlayerUI playerUI = playerUIObject.GetComponent<PlayerUI>();
         if (playerUI != null)
         {
             playerUI.Initialize(currentNode);
         }
 
         Vector2 position = ConvertCoordinates(currentNode.x, currentNode.y);
-        RectTransform rt = playerUIInstance.GetComponent<RectTransform>();
+        RectTransform rt = playerUIObject.GetComponent<RectTransform>();
         rt.anchoredPosition = position;
-    }
-
-    private void CenterOnCurrentNode()
-    {
-        StageNode currentNode = DungeonSystem.Instance.CurrentNode;
-
-        if (currentNode == null || !nodeInstanceMap.ContainsKey(currentNode))
-            return;
-
-        Vector2 scrollPos = CalculateScrollPosition(currentNode);
-
-        scrollRect.normalizedPosition = scrollPos;
     }
 
     private void CreateNodeInstance(StageNode node, GameObject prefab)
@@ -188,7 +215,9 @@ public class DungeonUISystem : Singleton<DungeonUISystem>
 
         nodeInstanceMap[node] = obj;
     }
+    #endregion
 
+    #region Helper Methods
     private Color GetColorByNodeType(StageNode from, StageNode to, StageNode currentNode)
     {
         // 도착 지점은 blue
@@ -228,17 +257,38 @@ public class DungeonUISystem : Singleton<DungeonUISystem>
 
         return new Vector2(newX, newY);
     }
-
-    public void AnimatePlayerMove(StageNode fromNode, StageNode toNode, System.Action onComplete)
+    #endregion
+    
+    #region Camera & Scroll Methods
+    private void CenterOnCurrentNode()
     {
-        isMoving = true;
-        StartCoroutine(MovePlayerCoroutine(fromNode, toNode, () =>
-        {
-            isMoving = false;
-            onComplete?.Invoke();
-        }));
+        StageNode currentNode = DungeonSystem.Instance.CurrentNode;
+
+        if (currentNode == null || !nodeInstanceMap.ContainsKey(currentNode))
+            return;
+
+        Vector2 scrollPos = CalculateScrollPosition(currentNode);
+
+        scrollRect.normalizedPosition = scrollPos;
     }
 
+    private Vector2 CalculateScrollPosition(StageNode targetNode)
+    {
+        if (!nodeInstanceMap.ContainsKey(targetNode))
+            return scrollRect.normalizedPosition;
+
+        RectTransform targetNodeRT = nodeInstanceMap[targetNode].GetComponent<RectTransform>();
+        Vector2 nodePosition = targetNodeRT.anchoredPosition;
+        Vector2 contentSize = scrollRect.content.sizeDelta;
+
+        float normalizedPositionX = Mathf.Clamp01((nodePosition.x + contentSize.x * 0.5f) / contentSize.x);
+        float normalizedPositionY = Mathf.Clamp01((nodePosition.y + contentSize.y * 0.5f) / contentSize.y);
+
+        return new Vector2(normalizedPositionX, normalizedPositionY);
+    }
+    #endregion
+
+    #region Coroutines
     private IEnumerator MovePlayerCoroutine(StageNode fromNode, StageNode toNode, System.Action onComplete)
     {
         if (playerContainer.childCount == 0)
@@ -247,8 +297,7 @@ public class DungeonUISystem : Singleton<DungeonUISystem>
             yield break;
         }
 
-        GameObject playerUI = playerContainer.GetChild(0).gameObject;
-        RectTransform playerRT = playerUI.GetComponent<RectTransform>();
+        RectTransform playerRT = playerUIObject.GetComponent<RectTransform>();
 
         Vector2 startPos = ConvertCoordinates(fromNode.x, fromNode.y);
         Vector2 endPos = ConvertCoordinates(toNode.x, toNode.y);
@@ -278,20 +327,5 @@ public class DungeonUISystem : Singleton<DungeonUISystem>
 
         onComplete?.Invoke();
     }
-
-    private Vector2 CalculateScrollPosition(StageNode targetNode)
-    {
-        if (!nodeInstanceMap.ContainsKey(targetNode))
-            return scrollRect.normalizedPosition;
-
-        RectTransform targetNodeRT = nodeInstanceMap[targetNode].GetComponent<RectTransform>();
-        Vector2 nodePosition = targetNodeRT.anchoredPosition;
-        Vector2 contentSize = scrollRect.content.sizeDelta;
-
-        float normalizedPositionX = Mathf.Clamp01((nodePosition.x + contentSize.x * 0.5f) / contentSize.x);
-        float normalizedPositionY = Mathf.Clamp01((nodePosition.y + contentSize.y * 0.5f) / contentSize.y);
-
-        return new Vector2(normalizedPositionX, normalizedPositionY);
-    }
-
+    #endregion
 }
