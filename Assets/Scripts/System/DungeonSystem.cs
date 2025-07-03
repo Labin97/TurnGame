@@ -59,13 +59,13 @@ public class DungeonSystem : Singleton<DungeonSystem>
 
     public List<StageNode> CalculateUnknownNodes()
     {
-        HashSet<StageNode> visibleSet = new HashSet<StageNode>();
-
-        if (visitedNodes == null)
+        if (visitedNodes == null || visitedNodes.Count == 0)
         {
             Debug.LogError("GetVisibleNodes failed - visitedNodes is null");
             return new List<StageNode>();
         }
+
+        HashSet<StageNode> visibleSet = new HashSet<StageNode>(visitedNodes.Count * 2);
 
         foreach (StageNode visitedNode in visitedNodes)
         {
@@ -103,7 +103,7 @@ public class DungeonSystem : Singleton<DungeonSystem>
 
     public void AutoMove(StageNode targetNode)
     {
-        List<StageNode> path = CalculateAutoMovingPath(currentNode, targetNode);
+        List<StageNode> path = CalculateAutoMovePath(currentNode, targetNode);
 
         if (path == null)
         {
@@ -171,7 +171,7 @@ public class DungeonSystem : Singleton<DungeonSystem>
         Debug.Log("InitStage Success");
     }
 
-    private List<StageNode> CalculateAutoMovingPath(StageNode start, StageNode target)
+    private List<StageNode> CalculateAutoMovePath(StageNode start, StageNode target)
     {
         Queue<StageNode> queue = new Queue<StageNode>();
         Dictionary<StageNode, StageNode> cameFrom = new Dictionary<StageNode, StageNode>();
@@ -220,7 +220,7 @@ public class DungeonSystem : Singleton<DungeonSystem>
     }
 
     // 이후에 힐 노드 재방문 이벤트로 변경
-    private bool StopAutoMoving(StageNode node)
+    private bool StopAutoMove(StageNode node)
     {
         // return node.nodeType == StageNodeType.Event;
         return false;
@@ -249,7 +249,7 @@ public class DungeonSystem : Singleton<DungeonSystem>
 
             yield return new WaitUntil(() => !DungeonUISystem.Instance.IsMoving);
 
-            if (StopAutoMoving(nextNode))
+            if (StopAutoMove(nextNode))
             {
                 break;
             }

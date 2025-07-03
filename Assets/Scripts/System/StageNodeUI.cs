@@ -50,7 +50,7 @@ public class StageNodeUI : MonoBehaviour
 
     private void ClosePlayerInfoPanel()
     {
-        GameObject playerUIobj = DungeonUISystem.Instance.PlayerUIObject;
+        GameObject playerUIobj = DungeonUISystem.Instance.PlayerUIObj;
         if (playerUIobj == null)
         {
             Debug.LogError("PlayerUI object not found. Cannot close info panel");

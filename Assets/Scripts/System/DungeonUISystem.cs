@@ -38,13 +38,13 @@ public class DungeonUISystem : Singleton<DungeonUISystem>
     #region Fields
     private Dictionary<StageNode, GameObject> nodeInstanceMap = new();
     private RectTransform nodeContainerRT;
-    private GameObject playerUIObject;
+    private GameObject playerUIObj;
     private bool isMoving = false;
     #endregion
 
     #region Properties
     public bool IsMoving => isMoving;
-    public GameObject PlayerUIObject => playerUIObject;
+    public GameObject PlayerUIObj => playerUIObj;
     #endregion
 
     #region  Unity Lifecycle
@@ -109,7 +109,8 @@ public class DungeonUISystem : Singleton<DungeonUISystem>
 
         if (!DungeonSystem.Instance.IsAutoMoving)
         {
-            Destroy(playerUIObject);
+            Destroy(playerUIObj);
+            playerUIObj = null;
         }
     }
 
@@ -182,18 +183,18 @@ public class DungeonUISystem : Singleton<DungeonUISystem>
 
         if (!DungeonSystem.Instance.IsAutoMoving)
         {
-            playerUIObject = Instantiate(playerUIPrefab, playerContainer);
+            playerUIObj = Instantiate(playerUIPrefab, playerContainer);
         }
 
         // Player UI 초기화 (이후 Initialize에서 필요한 정보 받게 변경)
-        PlayerUI playerUI = playerUIObject.GetComponent<PlayerUI>();
+        PlayerUI playerUI = playerUIObj.GetComponent<PlayerUI>();
         if (playerUI != null)
         {
             playerUI.Initialize(currentNode);
         }
 
         Vector2 position = ConvertCoordinates(currentNode.x, currentNode.y);
-        RectTransform rt = playerUIObject.GetComponent<RectTransform>();
+        RectTransform rt = playerUIObj.GetComponent<RectTransform>();
         rt.anchoredPosition = position;
     }
 
@@ -296,7 +297,7 @@ public class DungeonUISystem : Singleton<DungeonUISystem>
             yield break;
         }
 
-        RectTransform playerRT = playerUIObject.GetComponent<RectTransform>();
+        RectTransform playerRT = playerUIObj.GetComponent<RectTransform>();
 
         Vector2 startPos = ConvertCoordinates(fromNode.x, fromNode.y);
         Vector2 endPos = ConvertCoordinates(toNode.x, toNode.y);
