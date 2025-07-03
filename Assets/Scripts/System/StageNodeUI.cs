@@ -5,19 +5,18 @@ using UnityEngine;
 public class StageNodeUI : MonoBehaviour
 {
     private StageNode stageNode;
-    private StageNode currentNode;
 
     public void Initialize(StageNode node)
     {
         this.stageNode = node;
-        currentNode = DungeonSystem.Instance.CurrentNode;
     }
 
     public void OnClick()
     {
-        if (DungeonUISystem.Instance.IsMoving || DungeonSystem.Instance.IsAutoMoving || currentNode == stageNode) return;
+        if (DungeonUISystem.Instance.IsMoving || DungeonSystem.Instance.IsAutoMoving ||
+            DungeonSystem.Instance.CurrentNode == stageNode) return;
 
-        //AutoMoving 중 for 문 사이 1~2프레임 입력을 막기 위해 분리
+        //AutoMove 중 for 문 사이 1~2프레임 입력을 막기 위해 분리
         ProcessNodeClick();
     }
 
@@ -33,19 +32,19 @@ public class StageNodeUI : MonoBehaviour
             //실제로는 힐 노드 예외처리 여기서 해줘야 함
             if (DungeonSystem.Instance.IsVisitedNode(stageNode))
             {
-                DungeonSystem.Instance.MoveToNode(stageNode);
+                DungeonSystem.Instance?.MoveToNode(stageNode);
                 //이벤트 x
             }
             else
             {
-                DungeonSystem.Instance.MoveToNode(stageNode);
+                DungeonSystem.Instance?.MoveToNode(stageNode);
                 //이벤트 O
             }
         }
-        // 멀리있는 visited노드면 AutoMoving 사용
+        // 멀리있는 visited노드면 AutoMove 사용
         else if (DungeonSystem.Instance.IsVisitedNode(stageNode))
         {
-            DungeonSystem.Instance.AutoMoving(stageNode);
+            DungeonSystem.Instance?.AutoMove(stageNode);
         }
     }
 

@@ -101,7 +101,7 @@ public class DungeonSystem : Singleton<DungeonSystem>
         });
     }
 
-    public void AutoMoving(StageNode targetNode)
+    public void AutoMove(StageNode targetNode)
     {
         List<StageNode> path = CalculateAutoMovingPath(currentNode, targetNode);
 
@@ -209,7 +209,7 @@ public class DungeonSystem : Singleton<DungeonSystem>
         List<StageNode> path = new List<StageNode>();
         StageNode current = target;
 
-        while (current != null)
+        while (current != start)
         {
             path.Add(current);
             current = cameFrom[current];
@@ -232,10 +232,10 @@ public class DungeonSystem : Singleton<DungeonSystem>
     {
         isAutoMoving = true;
 
-        for (int i = 1; i < path.Count; i++)
+        for (int i = 0; i < path.Count; i++)
         {
             StageNode nextNode = path[i];
-            StageNodeUI nodeUI = DungeonUISystem.Instance.FindNodeUI(nextNode);
+            StageNodeUI nodeUI = DungeonUISystem.Instance?.FindNodeUI(nextNode);
 
             if (nodeUI != null)
             {

@@ -97,7 +97,6 @@ public class DungeonUISystem : Singleton<DungeonUISystem>
     {
         nodeInstanceMap.Clear();
 
-        // Player는 초기화 하지 않음 (AutoMoving 때문에)
         for (int i = nodeContainer.childCount - 1; i >= 0; i--)
         {
             Destroy(nodeContainer.GetChild(i).gameObject);
@@ -106,6 +105,11 @@ public class DungeonUISystem : Singleton<DungeonUISystem>
         for (int i = edgeContainer.childCount - 1; i >= 0; i--)
         {
             Destroy(edgeContainer.GetChild(i).gameObject);
+        }
+
+        if (!DungeonSystem.Instance.IsAutoMoving)
+        {
+            Destroy(playerUIObject);
         }
     }
 
@@ -128,7 +132,7 @@ public class DungeonUISystem : Singleton<DungeonUISystem>
     private void VisualizeNodes()
     {
         // UnknownNodes 그리기
-        foreach (StageNode node in DungeonSystem.Instance.CalculateUnknownNodes())
+        foreach (StageNode node in DungeonSystem.Instance?.CalculateUnknownNodes())
         {
             CreateNodeInstance(node, unknownNodePrefab);
         }
@@ -176,12 +180,7 @@ public class DungeonUISystem : Singleton<DungeonUISystem>
         //임시로 currentNode 받고 있고 이후 필요한 정보 받는 것으로 교체
         StageNode currentNode = DungeonSystem.Instance.CurrentNode;
 
-        //만약 없으면 생성하고 있으면 가져옴
-        if (playerContainer.childCount > 0)
-        {
-            playerUIObject = playerContainer.GetChild(0).gameObject;
-        }
-        else
+        if (!DungeonSystem.Instance.IsAutoMoving)
         {
             playerUIObject = Instantiate(playerUIPrefab, playerContainer);
         }
