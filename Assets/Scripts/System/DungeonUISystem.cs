@@ -89,7 +89,7 @@ public class DungeonUISystem : Singleton<DungeonUISystem>
     {
         if (!nodeInstanceMap.ContainsKey(targetNode))
         {
-            Debug.LogError("Find Node UI Error");
+            Debug.LogError("DungeonUISystem: Find Node UI Error");
             return null;
         }
 
@@ -126,7 +126,7 @@ public class DungeonUISystem : Singleton<DungeonUISystem>
 
         if (stageInfo == null)
         {
-            Debug.LogError("StageInfo is null");
+            Debug.LogError("DungeonUISystem: StageInfo is null");
             return;
         }
 
@@ -299,7 +299,7 @@ public class DungeonUISystem : Singleton<DungeonUISystem>
     {
         if (playerContainer.childCount == 0)
         {
-            Debug.LogError("No Player UI found");
+            Debug.LogError("DungeonUISystem: No Player UI found");
             yield break;
         }
 

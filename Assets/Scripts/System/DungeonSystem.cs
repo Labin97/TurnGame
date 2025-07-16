@@ -72,7 +72,7 @@ public class DungeonSystem : Singleton<DungeonSystem>
     {
         if (visitedNodes == null || visitedNodes.Count == 0)
         {
-            Debug.LogError("GetVisibleNodes failed - visitedNodes is null");
+            Debug.LogError("DungeonSystem: GetVisibleNodes failed - visitedNodes is null");
             return new List<StageNode>();
         }
 
@@ -96,7 +96,7 @@ public class DungeonSystem : Singleton<DungeonSystem>
     {
         if (targetNode == null || currentNode == null)
         {
-            Debug.LogError("Invalid node for movement");
+            Debug.LogError("DungeonSystem: Invalid node for movement");
             return;
         }
 
@@ -132,7 +132,7 @@ public class DungeonSystem : Singleton<DungeonSystem>
         JsonStageInfo json = FileSystem.Instance?.GetJsonStageInfo(1, 1);
         if (json == null)
         {
-            Debug.LogError("StageInfo load failed.");
+            Debug.LogError("DungeonSystem: StageInfo load failed.");
             return;
         }
 
@@ -168,7 +168,7 @@ public class DungeonSystem : Singleton<DungeonSystem>
 
             if (from == null || to == null)
             {
-                Debug.LogWarning($"Invalid connection: ({conn.fromX},{conn.fromY}) ¢®©¡ ({conn.toX},{conn.toY})");
+                Debug.LogWarning($"DungeonSystem: Invalid connection: ({conn.fromX},{conn.fromY}) ¢®©¡ ({conn.toX},{conn.toY})");
                 continue;
             }
 
@@ -179,7 +179,7 @@ public class DungeonSystem : Singleton<DungeonSystem>
                 to.connections.Add(from);
         }
 
-        Debug.Log("InitStage Success");
+        Debug.Log("DungeonSystem: InitStage Success");
     }
 
     private List<StageNode> CalculateAutoMovePath(StageNode start, StageNode target)
@@ -254,7 +254,7 @@ public class DungeonSystem : Singleton<DungeonSystem>
             }
             else
             {
-                Debug.LogError("Cannot find Node UI");
+                Debug.LogError("DungeonSystem: Cannot find Node UI");
                 break;
             }
 

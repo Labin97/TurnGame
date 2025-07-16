@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Const
+public static class Const
 {
     public static string TitleSceneName = "TitleScene";
     public static string LobbySceneName = "LobbyScene";
