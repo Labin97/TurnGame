@@ -15,6 +15,12 @@ public class PlayerUI : MonoBehaviour
 
     public void Initialize(StageNode node)
     {
+        if (DungeonSystem.Instance == null || DungeonUISystem.Instance == null)
+        {
+            Debug.LogError("PlayerUI: DungeonSystem or DungeonUISystem is null");
+            return;
+        }
+
         this.currentNode = node;
     }
 

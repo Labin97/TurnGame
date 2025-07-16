@@ -37,8 +37,19 @@ public class DungeonSystem : Singleton<DungeonSystem>
     #region Unity Lifecycle
     void Start()
     {
-        InitStage();
+        if (DungeonUISystem.Instance == null)
+        {
+            Debug.LogError("DungeonSystem: DungeonUISystem is null");
+            return;
+        }
 
+        if (FileSystem.Instance == null)
+        {
+            Debug.LogError("DungeonSystem: DungeonUISystem is null");
+            return;
+        }
+
+        InitStage();
         DungeonUISystem.Instance?.VisualizeStage();
     }
     #endregion

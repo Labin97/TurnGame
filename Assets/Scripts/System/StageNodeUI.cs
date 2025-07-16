@@ -8,6 +8,12 @@ public class StageNodeUI : MonoBehaviour
 
     public void Initialize(StageNode node)
     {
+        if (DungeonSystem.Instance == null || DungeonUISystem.Instance == null)
+        {
+            Debug.LogError("StageNodeUI: DungeonSystem or DungeonUISystem is null");
+            return;
+        }
+
         this.stageNode = node;
     }
 

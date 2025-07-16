@@ -50,6 +50,12 @@ public class DungeonUISystem : Singleton<DungeonUISystem>
     #region  Unity Lifecycle
     void Start()
     {
+        if (DungeonSystem.Instance == null)
+        {
+            Debug.LogError("DungeonUISystem: DungeonSystem is null");
+            return;
+        }
+
         nodeContainerRT = nodeContainer.GetComponent<RectTransform>();
     }
     #endregion
