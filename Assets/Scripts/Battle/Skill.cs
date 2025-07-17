@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Linq;
 using UnityEngine;
 
 public enum SkillType
@@ -27,8 +28,6 @@ public struct SkillResult
     public SkillData skillData;
     public float damageValue;
     public float healValue;
-    public List<int> appliedBuffs;
-    public List<int> appliedDebuffs;
 }
 
 public class SkillData
@@ -161,6 +160,7 @@ public class Skill : MonoBehaviour
     private float currentCritChance;
     private float currentCritMultiplier;
     private float currentDamageMultiplier;
+    private float currentHealMultiplier;
     private float currentSoulGauge;
     private float soulGaugeGenerated;
 
@@ -284,8 +284,6 @@ public class Skill : MonoBehaviour
             skillData = skillData,
             damageValue = 0f,
             healValue = 0f,
-            appliedBuffs = new List<int>(),
-            appliedDebuffs = new List<int>()
         };
 
         ExecuteAllEffects(skillData, result);
@@ -317,6 +315,7 @@ public class Skill : MonoBehaviour
         }
 
         currentDamageMultiplier = 0f;
+        currentHealMultiplier = 0f;
         soulGaugeGenerated = 1f;
     }
 
@@ -339,8 +338,11 @@ public class Skill : MonoBehaviour
             character?.TimeManager?.ReduceTime(skillData.timeMinus);
         }
 
+        // BeforeAction 상태효과 발동
+        BeforeActionStatusEffect(skillData);
+
         // 현재 데미지 계산
-        CalculateCurrentDamage(skillData);
+        CalculateStatusEffectAndCollectible(skillData);
 
         // 소울 스킬이라면 소울 게이지 소모
         if (skillData.soulType == SoulType.soul)
@@ -367,13 +369,13 @@ public class Skill : MonoBehaviour
         // 3. 버프 효과
         if (skillData.HasBuffEffects())
         {
-            ApplyBuffEffects(result);
+            ApplyBuffEffects();
         }
 
         // 4. 디버프 효과
         if (skillData.HasDebuffEffects())
         {
-            ApplyDebuffEffects(result);
+            ApplyDebuffEffects();
         }
 
         // 효과 실행 로그
@@ -406,7 +408,21 @@ public class Skill : MonoBehaviour
         }
     }
 
-    private void CalculateCurrentDamage(SkillData skillData)
+    //skillData.buffeffectsIds의 아이디로 BeforeAction인지 확인하고 맞으면 실행
+    private void BeforeActionStatusEffect(SkillData skillData)
+    {
+        if (skillData.HasBuffEffects())
+        {
+            ApplyBuffEffects();
+        }
+
+        if (skillData.HasDebuffEffects())
+        {
+            ApplyDebuffEffects();
+        }
+    }
+
+    private void CalculateStatusEffectAndCollectible(SkillData skillData)
     {
         // 컬렉터블 효과 적용
         ApplyCollectibleEffects(skillData.soulType);
@@ -416,7 +432,6 @@ public class Skill : MonoBehaviour
     }
 
     // 컬렉터블 효과 적용
-    // 이후 힐 효과 추가
     private void ApplyCollectibleEffects(SoulType soulType)
     {
         if (collectible == null) return;
@@ -442,10 +457,17 @@ public class Skill : MonoBehaviour
     {
         if (character?.StatusEffect == null) return;
 
-        float buffBonus = character.StatusEffect.CalculateBuff(soulType);
-        float debuffPenalty = character.StatusEffect.CalculateDebuff(soulType);
+        float damageBonus = character.StatusEffect.CalculateDamageStatusEffects(soulType);
 
-        currentDamageMultiplier += buffBonus + debuffPenalty;
+        currentDamageMultiplier += damageBonus;
+
+        float healBonus = character.StatusEffect.CalculateHealStatusEffects(soulType);
+
+        currentHealMultiplier += healBonus;
+
+        float soulGaugeBonus = character.StatusEffect.CalculateSoulGaugeStatusEffects(soulType);
+
+        soulGaugeGenerated += soulGaugeBonus;
     }
 
     //최종 데미지 계산
@@ -467,7 +489,7 @@ public class Skill : MonoBehaviour
     {
         bool isCritical = Random.Range(0f, 100f) < currentCritChance;
 
-        float finalHeal = BattleConst.CalculateHeal(currentHeal, isCritical, currentCritMultiplier, currentDamageMultiplier);
+        float finalHeal = BattleConst.CalculateHeal(currentHeal, isCritical, currentCritMultiplier, currentHealMultiplier);
 
         string hitType = isCritical ? "Critical Hit!" : "Hit!";
         string soul = skillData.soulType == SoulType.normal ? "" : "SOUL ";
@@ -476,16 +498,12 @@ public class Skill : MonoBehaviour
         return finalHeal;
     }
 
-    //이후 soulgenerated도 관리
-    private void ApplyBuffEffects(SkillResult result)
+    private void ApplyBuffEffects()
     {
-        soulGaugeGenerated *= (1 + 0f);
     }
 
-    //이후 soulgenerated도 관리
-    private void ApplyDebuffEffects(SkillResult result)
+    private void ApplyDebuffEffects()
     {
-        soulGaugeGenerated *= (1 + 0f);
     }
 
     // 스킬 효과 로그
@@ -504,14 +522,14 @@ public class Skill : MonoBehaviour
             effectLog += $" 힐 {result.healValue}";
         }
 
-        if (result.appliedBuffs.Count > 0)
+        if (result.skillData.buffEffectIds.Length > 0)
         {
-            effectLog += $" 버프 {result.appliedBuffs.Count}개";
+            effectLog += $" 버프 {result.skillData.buffEffectIds.Length}개";
         }
 
-        if (result.appliedDebuffs.Count > 0)
+        if (result.skillData.debuffEffectIds.Length > 0)
         {
-            effectLog += $" 디버프 {result.appliedDebuffs.Count}개";
+            effectLog += $" 디버프 {result.skillData.debuffEffectIds.Length}개";
         }
 
         Debug.Log(effectLog);

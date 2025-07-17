@@ -10,6 +10,12 @@ public enum StatusDurationType
     Count // 횟수형 (스킬 사용마다 1 감소)
 }
 
+public enum BuffTiming
+{
+    BeforeAction,
+    AfterAction
+}
+
 public enum StatusEffectType
 {
     DamageBoost,        // 데미지 증가
@@ -32,12 +38,18 @@ public class StatusEffectManager : MonoBehaviour
     {
     }
 
-    public float CalculateBuff(SoulType SoulType)
+    public float CalculateDamageStatusEffects(SoulType SoulType)
     {
         return 0f;
     }
 
-    public float CalculateDebuff(SoulType SoulType)
+    public float CalculateHealStatusEffects(SoulType SoulType)
+    {
+        return 0f;
+    }
+
+
+    public float CalculateSoulGaugeStatusEffects(SoulType SoulType)
     {
         return 0f;
     }
