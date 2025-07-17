@@ -59,14 +59,14 @@ public class SkillData
     public int soulGaugeRequired = 5; // 소울 스킬 발동에 필요한 횟수
 
     [Header("Status Effects")]
-    public int[] buffEffectIds; // 버프 효과 ID 배열
-    public int[] debuffEffectIds; // 디버프 효과 ID 배열
+    public string[] buffEffectIds; // 버프 효과 ID 배열
+    public string[] debuffEffectIds; // 디버프 효과 ID 배열
 
     // 기본 생성자
     public SkillData()
     {
-        buffEffectIds = new int[0];
-        debuffEffectIds = new int[0];
+        buffEffectIds = new string[0];
+        debuffEffectIds = new string[0];
     }
 
     // 복사 생성자
@@ -88,8 +88,8 @@ public class SkillData
         timePlus = other.timePlus;
         timeMinus = other.timeMinus;
         soulGaugeRequired = other.soulGaugeRequired;
-        buffEffectIds = (int[])other.buffEffectIds?.Clone();
-        debuffEffectIds = (int[])other.debuffEffectIds?.Clone();
+        buffEffectIds = (string[])other.buffEffectIds?.Clone();
+        debuffEffectIds = (string[])other.debuffEffectIds?.Clone();
     }
 
     // 데미지/힐 효과가 있는지 확인
@@ -171,7 +171,6 @@ public class Skill : MonoBehaviour
 
     public SkillData NormalSKill => skillSet?.normalSkill;
     public SkillData SoulSKill => skillSet?.soulSkill;
-    public bool IsInitialized => skillSet != null;
 
     //나중에 참조 변경
     private void InitializeFromData(SkillSet newSkillSet)
@@ -239,7 +238,7 @@ public class Skill : MonoBehaviour
 
     public void UseNormalSkill()
     {
-        if (!IsInitialized || skillSet?.normalSkill == null)
+        if (skillSet == null || skillSet?.normalSkill == null)
         {
             Debug.LogError("SKill: Normal skill data is not set");
             return;
@@ -250,7 +249,7 @@ public class Skill : MonoBehaviour
 
     public void UseSoulSKill()
     {
-        if (!IsInitialized || skillSet?.soulSkill == null)
+        if (skillSet == null || skillSet?.soulSkill == null)
         {
             Debug.LogError("SKill: Soul skill data is not set");
             return;
@@ -276,7 +275,7 @@ public class Skill : MonoBehaviour
 
         ResetAllRuntimeValues(skillData);
 
-        PreprocessSkill(skillData);
+        BeforeSkill(skillData);
 
         // 스킬 결과 저장 구조체
         SkillResult result = new SkillResult
@@ -288,10 +287,7 @@ public class Skill : MonoBehaviour
 
         ExecuteAllEffects(skillData, result);
 
-        //버프, 디버프 적용상태로 공격 시작
         skillQueue.EnqueueSkill(result);
-
-        PostprocessSkill(skillData);
     }
 
     // 모든 런타임 값 초기화
@@ -330,7 +326,7 @@ public class Skill : MonoBehaviour
     }
 
     // 스킬 사용 전처리
-    private void PreprocessSkill(SkillData skillData)
+    private void BeforeSkill(SkillData skillData)
     {
         // 시간 관리
         if (skillData.timeMinus <= character?.TimeManager?.CurrentTime)
@@ -344,10 +340,39 @@ public class Skill : MonoBehaviour
         // 현재 데미지 계산
         CalculateStatusEffectAndCollectible(skillData);
 
+        // 상태효과로 인한 카운트 감소
+        character?.StatusEffect?.ReduceBuffCount();
+
         // 소울 스킬이라면 소울 게이지 소모
         if (skillData.soulType == SoulType.soul)
         {
             currentSoulGauge = 0f;
+
+            //이후 UI 반짝이기 삭제
+            //
+            //
+            //
+            //
+            //
+        }
+
+        // 일반 스킬이라면 소울 게이지 증가
+        if (skillData.soulType == SoulType.normal)
+        {
+            if (soulGaugeGenerated <= 0f || skillSet?.soulSkill == null)
+            {
+                Debug.LogError("Skill: BeforeSKill Error");
+                return;
+            }
+
+            float previousGauge = currentSoulGauge;
+            currentSoulGauge = Mathf.Clamp(currentSoulGauge + soulGaugeGenerated, 0f, skillSet.normalSkill.soulGaugeRequired);
+
+            //이후 UI 반짝이기 추가
+            if (currentSoulGauge == skillSet.normalSkill.soulGaugeRequired)
+            {
+                Debug.Log($"소울 스킬 사용 가능! ({skillSet.soulSkill.skillName})");
+            }
         }
     }
 
@@ -382,33 +407,7 @@ public class Skill : MonoBehaviour
         LogSkillEffects(skillData, result);
     }
 
-    // 스킬 사용 후처리
-    private void PostprocessSkill(SkillData skillData)
-    {
-        // 상태효과로 인한 카운트 감소
-        character?.StatusEffect?.ReduceBuffCount();
-
-        // 일반 스킬이라면 소울 게이지 증가
-        if (skillData.soulType == SoulType.normal)
-        {
-            if (soulGaugeGenerated <= 0f || skillSet?.soulSkill == null)
-            {
-                Debug.LogError("Skill: PostprocessSKill Error");
-                return;
-            }
-
-            float previousGauge = currentSoulGauge;
-            currentSoulGauge = Mathf.Clamp(currentSoulGauge + soulGaugeGenerated, 0f, skillSet.normalSkill.soulGaugeRequired);
-
-            //이후 UI 반짝이기 추가
-            if (currentSoulGauge == skillSet.normalSkill.soulGaugeRequired)
-            {
-                Debug.Log($"소울 스킬 사용 가능! ({skillSet.soulSkill.skillName})");
-            }
-        }
-    }
-
-    //skillData.buffeffectsIds의 아이디로 BeforeAction인지 확인하고 맞으면 실행
+    // 이후 skillData.buffeffectsIds의 아이디로 BeforeAction인지 확인하고 맞으면 실행
     private void BeforeActionStatusEffect(SkillData skillData)
     {
         if (skillData.HasBuffEffects())
@@ -498,6 +497,7 @@ public class Skill : MonoBehaviour
         return finalHeal;
     }
 
+    // 이후 AfterAction, BeforeAction 나눠야함
     private void ApplyBuffEffects()
     {
     }
