@@ -6,16 +6,14 @@ public class Character : MonoBehaviour
 {
     private CharacterStats stats;
     private List<SoulPrism> soulPrisms = new List<SoulPrism>();
-    private TimeControl timeControl;
-    private ItemControl itemControl;
-    private StatusEffectControl statusEffect;
-    private SoulGaugeControl soulGaugeControl;
+    private TimeManager timeManager;
+    private ItemManager itemManager;
+    private StatusEffectManager statusEffect;
     private SkillQueue skillQueue;
 
     public List<SoulPrism> SoulPrisms => soulPrisms;
-    public StatusEffectControl StatusEffect => statusEffect;
-    public SoulGaugeControl SoulGaugeControl => soulGaugeControl;
-    public TimeControl TimeControl => timeControl;
+    public StatusEffectManager StatusEffect => statusEffect;
+    public TimeManager TimeManager => timeManager;
     public SkillQueue SkillQueue => skillQueue;
 
 
@@ -33,6 +31,6 @@ public class Character : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 }

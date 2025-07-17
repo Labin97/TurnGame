@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class SkillQueue : MonoBehaviour
 {
-    public void EnqueueSkill(bool isSoulSKill, Skill skill)
+    public void EnqueueSkill(SkillResult skillResult)
     {
 
     }

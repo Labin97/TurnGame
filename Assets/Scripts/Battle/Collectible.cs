@@ -14,5 +14,13 @@ public class Collectible : MonoBehaviour
         return 0f;
     }
 
-    
+    public float CalculateHealMultiplier()
+    {
+        return 0f;
+    }
+
+    public float CalculateSoulHealMultiplier()
+    {
+        return 0f;
+    }
 }

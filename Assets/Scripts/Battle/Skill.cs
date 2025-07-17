@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.Common;
 using UnityEngine;
 
 public enum SkillType
@@ -10,175 +11,509 @@ public enum SkillType
     debuff
 }
 
+public enum SoulType
+{
+    normal,
+    soul
+}
+
 public enum SpecialEffect
 {
     unstoppable
 }
 
-public class Skill : MonoBehaviour
+public struct SkillResult
 {
-    [Header("Basic Skill Info")]
-    private string skillName;
-    private SkillType skillType;
-    private Sprite skillIcon;
-    private AudioClip skillsound;
-    private AnimationClip skillAnimation;
-    private ParticleSystem vfxEffect;
-    private AnimationClip vfxAnimation;
-    private SpecialEffect specialEffect;
+    public SkillData skillData;
+    public float damageValue;
+    public float healValue;
+    public List<int> appliedBuffs;
+    public List<int> appliedDebuffs;
+}
+
+public class SkillData
+{
+    [Header("Basic Info")]
+    public string skillId;
+    public string skillName;
+    public SkillType skillType;  //주 타입 (UI 표시용)
+    public SoulType soulType;
+    public string description;
+    public string iconPath;
+    public string soundPath;
+    public string animationPath;
+    public SpecialEffect specialEffect;
 
     [Header("Damage Stats")]
-    private float baseDamage = 100f;
-    private float currentDamage;
-    private float damageMultiplier = 0f;
+    public float baseDamage;
+    public float baseHeal;
 
     [Header("Critical Stats")]
-    private float critChance = 25f; // 25%는 0.25가 아닌 25 이런 식으로 사용 (100이 기준)
-    private float currentCritChance;
-    private float critMultiplier = 1.5f;
+    public float critChance;
+    public float critMultiplier;
 
     [Header("Time Control")]
-    private float timePlus;
-    private float timeMinus;
+    public float timePlus;
+    public float timeMinus; // 시간게이지 소모량
 
     [Header("Soul Gauge")]
-    private float soulGaugeRequired = 5f;
-    private float currentSoulGauge = 0f;
+    public int soulGaugeRequired = 5; // 소울 스킬 발동에 필요한 횟수
 
-    [Header("Soul Skill")]
-    private float soulSkillBaseDamage = 180f;
-    private float soulSkillCurrentDamage;
+    [Header("Status Effects")]
+    public int[] buffEffectIds; // 버프 효과 ID 배열
+    public int[] debuffEffectIds; // 디버프 효과 ID 배열
+
+    // 기본 생성자
+    public SkillData()
+    {
+        buffEffectIds = new int[0];
+        debuffEffectIds = new int[0];
+    }
+
+    // 복사 생성자
+    public SkillData(SkillData other)
+    {
+        skillId = other.skillId;
+        skillName = other.skillName;
+        skillType = other.skillType;
+        soulType = other.soulType;
+        description = other.description;
+        iconPath = other.iconPath;
+        soundPath = other.soundPath;
+        animationPath = other.animationPath;
+        specialEffect = other.specialEffect;
+        baseDamage = other.baseDamage;
+        baseHeal = other.baseHeal;
+        critChance = other.critChance;
+        critMultiplier = other.critMultiplier;
+        timePlus = other.timePlus;
+        timeMinus = other.timeMinus;
+        soulGaugeRequired = other.soulGaugeRequired;
+        buffEffectIds = (int[])other.buffEffectIds?.Clone();
+        debuffEffectIds = (int[])other.debuffEffectIds?.Clone();
+    }
+
+    // 데미지/힐 효과가 있는지 확인
+    public bool HasDamageEffect()
+    {
+        return baseDamage > 0f;
+    }
+
+    public bool HasHealEffect()
+    {
+        return baseHeal > 0f;
+    }
+
+    // 버프 효과가 있는지 확인
+    public bool HasBuffEffects()
+    {
+        return buffEffectIds != null && buffEffectIds.Length > 0;
+    }
+
+    // 디버프 효과가 있는지 확인
+    public bool HasDebuffEffects()
+    {
+        return debuffEffectIds != null && debuffEffectIds.Length > 0;
+    }
+}
+
+public class SkillSet
+{
+    public string skillSetId;
+    public string skillSetName;
+
+    public SkillData normalSkill;
+    public SkillData soulSkill;
+
+    public SkillSet(SkillSet other)
+    {
+        skillSetId = other.skillSetId;
+        skillSetName = other.skillSetName;
+        normalSkill = new SkillData(other.normalSkill);
+        soulSkill = new SkillData(other.soulSkill);
+    }
+
+    public SkillSet()
+    {
+        normalSkill = new SkillData();
+        soulSkill = new SkillData();
+    }
+}
+
+public class Skill : MonoBehaviour
+{
+    [Header("Skill Set")]
+    private SkillSet skillSet;
+
+    [Header("Normal Skill Resources")]
+    private Sprite normalSkillIcon;
+    private AudioClip normalSkillSound;
+    private AnimationClip normalSkillAnimation;
+
+    [Header("SOul Skill Resources")]
+    private Sprite soulSkillIcon;
     private AudioClip soulSkillSound;
     private AnimationClip soulSkillAnimation;
 
+    [Header("Runtime Stats")]
+    private float currentDamage;
+    private float currentHeal;
+    private float currentCritChance;
+    private float currentCritMultiplier;
+    private float currentDamageMultiplier;
+    private float currentSoulGauge;
+    private float soulGaugeGenerated;
+
+    [Header("Component")]
     private Character character;
     private Collectible collectible;
+    private SkillQueue skillQueue;
 
-    public SkillType SkillType => skillType;
+    public SkillData NormalSKill => skillSet?.normalSkill;
+    public SkillData SoulSKill => skillSet?.soulSkill;
+    public bool IsInitialized => skillSet != null;
 
     //나중에 참조 변경
-    private void Initialize()
+    private void InitializeFromData(SkillSet newSkillSet)
     {
+        skillSet = new SkillSet(newSkillSet);
+
         character = GetComponent<Character>();
+        collectible = GetComponent<Collectible>();
+        skillQueue = GetComponent<SkillQueue>();
+
         if (character == null)
         {
             Debug.LogError("SKill: Character is null");
             return;
         }
 
-        collectible = GetComponent<Collectible>();
         if (collectible == null)
         {
             Debug.LogError("Skill: Collectible is null");
+            return;
         }
 
-        currentDamage = baseDamage;
-        damageMultiplier = 0f;
-        currentCritChance = critChance;
-        soulSkillCurrentDamage = soulSkillBaseDamage;
+        if (skillQueue == null)
+        {
+            Debug.LogError("Skill: SkillQueue is null");
+            return;
+        }
+
+        LoadAllResources();
     }
 
-    public float UseSkill(bool isSoulSkill)
+    private void LoadAllResources()
     {
-        //버프 횟수 차감
-        character.StatusEffect.ReduceBuffCount();
-
-        float damage = 0f;
-
-        switch (skillType)
+        if (!string.IsNullOrEmpty(skillSet.normalSkill.iconPath))
         {
-            case SkillType.attack:
-                damage = CalculateAttackDamage(isSoulSkill);
-                break;
-            case SkillType.heal:
-                damage = CalculateHealAmount(isSoulSkill);
-                break;
-            case SkillType.buff:
-                character.StatusEffect.ApplyBuff(isSoulSkill, this);
-                break;
-            case SkillType.debuff:
-                character.StatusEffect.ApplyDebuff(isSoulSkill, this);
-                break;
+            normalSkillIcon = Resources.Load<Sprite>(skillSet.normalSkill.iconPath);
         }
 
-        character.SoulGaugeControl.CalculateSoulGauge(isSoulSkill);
-        character.TimeControl.ReduceTime();
-        character.SkillQueue.EnqueueSkill(isSoulSkill, this);
+        if (!string.IsNullOrEmpty(skillSet.normalSkill.soundPath))
+        {
+            normalSkillSound = Resources.Load<AudioClip>(skillSet.normalSkill.soundPath);
+        }
 
-        return damage;
+        if (!string.IsNullOrEmpty(skillSet.normalSkill.animationPath))
+        {
+            normalSkillAnimation = Resources.Load<AnimationClip>(skillSet.normalSkill.animationPath);
+        }
+
+        if (!string.IsNullOrEmpty(skillSet.soulSkill.iconPath))
+        {
+            soulSkillIcon = Resources.Load<Sprite>(skillSet.soulSkill.iconPath);
+        }
+
+        if (!string.IsNullOrEmpty(skillSet.soulSkill.soundPath))
+        {
+            soulSkillSound = Resources.Load<AudioClip>(skillSet.soulSkill.soundPath);
+        }
+
+        if (!string.IsNullOrEmpty(skillSet.soulSkill.animationPath))
+        {
+            soulSkillAnimation = Resources.Load<AnimationClip>(skillSet.soulSkill.animationPath);
+        }
+    }
+
+
+    public void UseNormalSkill()
+    {
+        if (!IsInitialized || skillSet?.normalSkill == null)
+        {
+            Debug.LogError("SKill: Normal skill data is not set");
+            return;
+        }
+
+        ExecuteSkill(skillSet?.normalSkill);
+    }
+
+    public void UseSoulSKill()
+    {
+        if (!IsInitialized || skillSet?.soulSkill == null)
+        {
+            Debug.LogError("SKill: Soul skill data is not set");
+            return;
+        }
+
+        if (!CanUseSoulSkill())
+        {
+            Debug.LogError("SKill: Cannot use soul skill");
+            return;
+        }
+
+        ExecuteSkill(skillSet?.soulSkill);
+    }
+
+    //데미지와 스킬에 대한 내용을 큐에 추가해야함
+    private void ExecuteSkill(SkillData skillData)
+    {
+        //시간 초 안되면 종료
+        if (skillData.timeMinus > character?.TimeManager?.CurrentTime)
+        {
+            return;
+        }
+
+        ResetAllRuntimeValues(skillData);
+
+        PreprocessSkill(skillData);
+
+        // 스킬 결과 저장 구조체
+        SkillResult result = new SkillResult
+        {
+            skillData = skillData,
+            damageValue = 0f,
+            healValue = 0f,
+            appliedBuffs = new List<int>(),
+            appliedDebuffs = new List<int>()
+        };
+
+        ExecuteAllEffects(skillData, result);
+
+        //버프, 디버프 적용상태로 공격 시작
+        skillQueue.EnqueueSkill(result);
+
+        PostprocessSkill(skillData);
+    }
+
+    // 모든 런타임 값 초기화
+    private void ResetAllRuntimeValues(SkillData skillData)
+    {
+        // 일반 스킬
+        if (skillData.soulType == SoulType.normal)
+        {
+            currentDamage = skillSet.normalSkill.baseDamage;
+            currentHeal = skillSet.normalSkill.baseHeal;
+            currentCritChance = skillSet.normalSkill.critChance;
+            currentCritMultiplier = skillSet.normalSkill.critMultiplier;
+        }
+        // 소울 스킬
+        else
+        {
+            currentDamage = skillSet.soulSkill.baseDamage;
+            currentHeal = skillSet.soulSkill.baseHeal;
+            currentCritChance = skillSet.soulSkill.critChance;
+            currentCritMultiplier = skillSet.soulSkill.critMultiplier;
+        }
+
+        currentDamageMultiplier = 0f;
+        soulGaugeGenerated = 1f;
+    }
+
+    private bool CanUseSoulSkill()
+    {
+        if (skillSet?.soulSkill == null || currentSoulGauge != skillSet.normalSkill.soulGaugeRequired)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    // 스킬 사용 전처리
+    private void PreprocessSkill(SkillData skillData)
+    {
+        // 시간 관리
+        if (skillData.timeMinus <= character?.TimeManager?.CurrentTime)
+        {
+            character?.TimeManager?.ReduceTime(skillData.timeMinus);
+        }
+
+        // 현재 데미지 계산
+        CalculateCurrentDamage(skillData);
+
+        // 소울 스킬이라면 소울 게이지 소모
+        if (skillData.soulType == SoulType.soul)
+        {
+            currentSoulGauge = 0f;
+        }
+    }
+
+    // 모든 효과 실행
+    private void ExecuteAllEffects(SkillData skillData, SkillResult result)
+    {
+        // 1. 데미지 효과
+        if (skillData.HasDamageEffect())
+        {
+            result.damageValue = CalculateDamage(skillData);
+        }
+
+        // 2. 힐 효과
+        if (skillData.HasHealEffect())
+        {
+            result.healValue = CalculateHeal(skillData);
+        }
+
+        // 3. 버프 효과
+        if (skillData.HasBuffEffects())
+        {
+            ApplyBuffEffects(result);
+        }
+
+        // 4. 디버프 효과
+        if (skillData.HasDebuffEffects())
+        {
+            ApplyDebuffEffects(result);
+        }
+
+        // 효과 실행 로그
+        LogSkillEffects(skillData, result);
+    }
+
+    // 스킬 사용 후처리
+    private void PostprocessSkill(SkillData skillData)
+    {
+        // 상태효과로 인한 카운트 감소
+        character?.StatusEffect?.ReduceBuffCount();
+
+        // 일반 스킬이라면 소울 게이지 증가
+        if (skillData.soulType == SoulType.normal)
+        {
+            if (soulGaugeGenerated <= 0f || skillSet?.soulSkill == null)
+            {
+                Debug.LogError("Skill: PostprocessSKill Error");
+                return;
+            }
+
+            float previousGauge = currentSoulGauge;
+            currentSoulGauge = Mathf.Clamp(currentSoulGauge + soulGaugeGenerated, 0f, skillSet.normalSkill.soulGaugeRequired);
+
+            //이후 UI 반짝이기 추가
+            if (currentSoulGauge == skillSet.normalSkill.soulGaugeRequired)
+            {
+                Debug.Log($"소울 스킬 사용 가능! ({skillSet.soulSkill.skillName})");
+            }
+        }
+    }
+
+    private void CalculateCurrentDamage(SkillData skillData)
+    {
+        // 컬렉터블 효과 적용
+        ApplyCollectibleEffects(skillData.soulType);
+
+        // 상태효과 적용
+        ApplyStatusEffects(skillData.soulType);
+    }
+
+    // 컬렉터블 효과 적용
+    // 이후 힐 효과 추가
+    private void ApplyCollectibleEffects(SoulType soulType)
+    {
+        if (collectible == null) return;
+
+        if (soulType == SoulType.normal)
+        {
+            float damageBonus = collectible.CalculateDamageMultiplier();
+            currentDamage *= (1 + damageBonus);
+            float healBonus = collectible.CalculateHealMultiplier();
+            currentHeal *= (1 + healBonus);
+        }
+        else
+        {
+            float soulDamageBonus = collectible.CalculateSoulDamageMultiplier();
+            currentDamage *= (1 + soulDamageBonus);
+            float healBonus = collectible.CalculateSoulHealMultiplier();
+            currentHeal *= (1 + healBonus);
+        }
+    }
+
+    // 상태효과 적용
+    private void ApplyStatusEffects(SoulType soulType)
+    {
+        if (character?.StatusEffect == null) return;
+
+        float buffBonus = character.StatusEffect.CalculateBuff(soulType);
+        float debuffPenalty = character.StatusEffect.CalculateDebuff(soulType);
+
+        currentDamageMultiplier += buffBonus + debuffPenalty;
     }
 
     //최종 데미지 계산
-    public float CalculateAttackDamage(bool isSoulSkill)
+    public float CalculateDamage(SkillData skillData)
     {
-        if (skillType != SkillType.attack)
-        {
-            Debug.LogError($"Skill: {skillName} is not an attack skill");
-            return 0f;
-        }
+        bool isCritical = Random.Range(0f, 100f) < currentCritChance;
 
-        CalculateCollectible();
-        CalculateStatusEffect();
+        float finalDamage = BattleConst.CalculateDamage(currentDamage, isCritical, currentCritMultiplier, currentDamageMultiplier);
 
-        bool isCritical = Random.Range(0f, 100f) < critChance;
-
-        float finalDamage = BattleConst.CalculateDamage(currentDamage, soulSkillCurrentDamage,
-            isSoulSkill, isCritical, critMultiplier, damageMultiplier);
-
-        if (isCritical)
-        {
-            Debug.Log($"Critical Hit! {skillName} - isSoulSkill: {isSoulSkill}, Damage: {finalDamage}");
-        }
-        else
-        {
-            Debug.Log($"Hit! {skillName} - isSoulSkill: {isSoulSkill}, Damage: {finalDamage}");
-        }
+        string hitType = isCritical ? "Critical Hit!" : "Hit!";
+        string soul = skillData.soulType == SoulType.normal ? "" : "SOUL ";
+        Debug.Log($"{soul}{hitType} {skillData.skillName} - Damage: {finalDamage}");
 
         return finalDamage;
     }
 
-    //나중에 고치기
-    public float CalculateHealAmount(bool isSoulSkill)
+    //최종 힐링 계산
+    public float CalculateHeal(SkillData skillData)
     {
-        if (skillType != SkillType.heal)
-        {
-            Debug.LogError($"Skill: {skillName} is not an Heal skill");
-            return 0f;
-        }
+        bool isCritical = Random.Range(0f, 100f) < currentCritChance;
 
-        CalculateCollectible();
-        CalculateStatusEffect();
+        float finalHeal = BattleConst.CalculateHeal(currentHeal, isCritical, currentCritMultiplier, currentDamageMultiplier);
 
-        bool isCritical = Random.Range(0f, 100f) < critChance;
+        string hitType = isCritical ? "Critical Hit!" : "Hit!";
+        string soul = skillData.soulType == SoulType.normal ? "" : "SOUL ";
+        Debug.Log($"{soul}{hitType} {skillData.skillName} - Heal: {finalHeal}");
 
-        float finalDamage = BattleConst.CalculateDamage(currentDamage, soulSkillCurrentDamage,
-            isSoulSkill, isCritical, critMultiplier, damageMultiplier);
-
-        if (isCritical)
-        {
-            Debug.Log($"Critical Hit! {skillName} - isSoulSkill: {isSoulSkill}, Damage: {finalDamage}");
-        }
-        else
-        {
-            Debug.Log($"Hit! {skillName} - isSoulSkill: {isSoulSkill}, Damage: {finalDamage}");
-        }
-
-        return finalDamage;
+        return finalHeal;
     }
 
-    private void CalculateStatusEffect()
+    //이후 soulgenerated도 관리
+    private void ApplyBuffEffects(SkillResult result)
     {
-        damageMultiplier += character.StatusEffect.CalculateBuff();
-        damageMultiplier += character.StatusEffect.CalculateDebuff();
-        //critChance
+        soulGaugeGenerated *= (1 + 0f);
     }
 
-    //나중에 힐의 경우 분리
-    private void CalculateCollectible()
+    //이후 soulgenerated도 관리
+    private void ApplyDebuffEffects(SkillResult result)
     {
-        currentDamage = baseDamage * (1 + collectible.CalculateDamageMultiplier());
-        soulSkillCurrentDamage = soulSkillBaseDamage * (1 + collectible.CalculateSoulDamageMultiplier());
-        //critchance
+        soulGaugeGenerated *= (1 + 0f);
     }
 
+    // 스킬 효과 로그
+    private void LogSkillEffects(SkillData skillData, SkillResult result)
+    {
+        string soulPrefix = skillData.soulType == SoulType.soul ? "SOUL " : "";
+        string effectLog = $"{soulPrefix}{skillData.skillName} 효과:";
+
+        if (result.damageValue > 0f)
+        {
+            effectLog += $" 데미지 {result.damageValue}";
+        }
+
+        if (result.healValue > 0f)
+        {
+            effectLog += $" 힐 {result.healValue}";
+        }
+
+        if (result.appliedBuffs.Count > 0)
+        {
+            effectLog += $" 버프 {result.appliedBuffs.Count}개";
+        }
+
+        if (result.appliedDebuffs.Count > 0)
+        {
+            effectLog += $" 디버프 {result.appliedDebuffs.Count}개";
+        }
+
+        Debug.Log(effectLog);
+    }
 }
