@@ -4,141 +4,6 @@ using System.Data.Common;
 using System.Linq;
 using UnityEngine;
 
-public enum SkillType
-{
-    attack,
-    heal,
-    buff,
-    debuff
-}
-
-public enum SoulType
-{
-    normal,
-    soul
-}
-
-public enum SpecialEffect
-{
-    unstoppable
-}
-
-public struct SkillResult
-{
-    public SkillData skillData;
-    public float damageValue;
-    public float healValue;
-}
-
-public class SkillData
-{
-    [Header("Basic Info")]
-    public string skillId;
-    public string skillName;
-    public SkillType skillType;  //주 타입 (UI 표시용)
-    public SoulType soulType;
-    public string description;
-    public string iconPath;
-    public string soundPath;
-    public string animationPath;
-    public SpecialEffect specialEffect;
-
-    [Header("Damage Stats")]
-    public float baseDamage;
-    public float baseHeal;
-
-    [Header("Critical Stats")]
-    public float critChance;
-    public float critMultiplier;
-
-    [Header("Time Control")]
-    public float timePlus;
-    public float timeMinus; // 시간게이지 소모량
-
-    [Header("Soul Gauge")]
-    public int soulGaugeRequired = 5; // 소울 스킬 발동에 필요한 횟수
-
-    [Header("Status Effects")]
-    public string[] buffEffectIds; // 버프 효과 ID 배열
-    public string[] debuffEffectIds; // 디버프 효과 ID 배열
-
-    // 기본 생성자
-    public SkillData()
-    {
-        buffEffectIds = new string[0];
-        debuffEffectIds = new string[0];
-    }
-
-    // 복사 생성자
-    public SkillData(SkillData other)
-    {
-        skillId = other.skillId;
-        skillName = other.skillName;
-        skillType = other.skillType;
-        soulType = other.soulType;
-        description = other.description;
-        iconPath = other.iconPath;
-        soundPath = other.soundPath;
-        animationPath = other.animationPath;
-        specialEffect = other.specialEffect;
-        baseDamage = other.baseDamage;
-        baseHeal = other.baseHeal;
-        critChance = other.critChance;
-        critMultiplier = other.critMultiplier;
-        timePlus = other.timePlus;
-        timeMinus = other.timeMinus;
-        soulGaugeRequired = other.soulGaugeRequired;
-        buffEffectIds = (string[])other.buffEffectIds?.Clone();
-        debuffEffectIds = (string[])other.debuffEffectIds?.Clone();
-    }
-
-    // 데미지/힐 효과가 있는지 확인
-    public bool HasDamageEffect()
-    {
-        return baseDamage > 0f;
-    }
-
-    public bool HasHealEffect()
-    {
-        return baseHeal > 0f;
-    }
-
-    // 버프 효과가 있는지 확인
-    public bool HasBuffEffects()
-    {
-        return buffEffectIds != null && buffEffectIds.Length > 0;
-    }
-
-    // 디버프 효과가 있는지 확인
-    public bool HasDebuffEffects()
-    {
-        return debuffEffectIds != null && debuffEffectIds.Length > 0;
-    }
-}
-
-public class SkillSet
-{
-    public string skillSetId;
-    public string skillSetName;
-
-    public SkillData normalSkill;
-    public SkillData soulSkill;
-
-    public SkillSet(SkillSet other)
-    {
-        skillSetId = other.skillSetId;
-        skillSetName = other.skillSetName;
-        normalSkill = new SkillData(other.normalSkill);
-        soulSkill = new SkillData(other.soulSkill);
-    }
-
-    public SkillSet()
-    {
-        normalSkill = new SkillData();
-        soulSkill = new SkillData();
-    }
-}
-
 public class Skill : MonoBehaviour
 {
     [Header("Skill Set")]
@@ -172,7 +37,6 @@ public class Skill : MonoBehaviour
     public SkillData NormalSKill => skillSet?.normalSkill;
     public SkillData SoulSKill => skillSet?.soulSkill;
 
-    //나중에 참조 변경
     private void InitializeFromData(SkillSet newSkillSet)
     {
         skillSet = new SkillSet(newSkillSet);
@@ -264,16 +128,37 @@ public class Skill : MonoBehaviour
         ExecuteSkill(skillSet?.soulSkill);
     }
 
-    //데미지와 스킬에 대한 내용을 큐에 추가해야함
     private void ExecuteSkill(SkillData skillData)
     {
-        //시간 초 안되면 종료
+        //시간 관리
         if (skillData.timeMinus > character?.TimeManager?.CurrentTime)
         {
             return;
         }
+        else
+        {
+            character?.TimeManager?.ReduceTime(skillData.timeMinus);
+        }
 
-        ResetAllRuntimeValues(skillData);
+        // 상태효과 다운캐스팅
+        if (skillData is StatusEffectData statuseffect)
+        {
+            ProcessStatusEffect(statuseffect);
+        }
+        else
+        {
+            ProcessSkill(skillData);
+        }
+    }
+
+    private void ProcessStatusEffect(StatusEffectData statusEffect)
+    {
+        character.StatusEffectManager.ApplyStatusEffect(statusEffect);
+    }
+
+    private void ProcessSkill(SkillData skillData)
+    {
+        ResetAllRuntimeSkillValues(skillData);
 
         BeforeSkill(skillData);
 
@@ -291,7 +176,7 @@ public class Skill : MonoBehaviour
     }
 
     // 모든 런타임 값 초기화
-    private void ResetAllRuntimeValues(SkillData skillData)
+    private void ResetAllRuntimeSkillValues(SkillData skillData)
     {
         // 일반 스킬
         if (skillData.soulType == SoulType.normal)
@@ -328,34 +213,22 @@ public class Skill : MonoBehaviour
     // 스킬 사용 전처리
     private void BeforeSkill(SkillData skillData)
     {
-        // 시간 관리
-        if (skillData.timeMinus <= character?.TimeManager?.CurrentTime)
-        {
-            character?.TimeManager?.ReduceTime(skillData.timeMinus);
-        }
-
         // BeforeAction 상태효과 발동
-        BeforeActionStatusEffect(skillData);
+        ProcessEffectList(skillData.buffEffectIds, true);
+        ProcessEffectList(skillData.debuffEffectIds, true);
 
         // 현재 데미지 계산
         CalculateStatusEffectAndCollectible(skillData);
 
         // 상태효과로 인한 카운트 감소
-        character?.StatusEffect?.ReduceBuffCount();
+        character?.StatusEffectManager?.ReduceBuffCount();
 
-        // 소울 스킬이라면 소울 게이지 소모
-        if (skillData.soulType == SoulType.soul)
-        {
-            currentSoulGauge = 0f;
+        // 소울 게이지 관리
+        CalculateSoulGauge(skillData);
+    }
 
-            //이후 UI 반짝이기 삭제
-            //
-            //
-            //
-            //
-            //
-        }
-
+    private void CalculateSoulGauge(SkillData skillData)
+    {
         // 일반 스킬이라면 소울 게이지 증가
         if (skillData.soulType == SoulType.normal)
         {
@@ -373,6 +246,19 @@ public class Skill : MonoBehaviour
             {
                 Debug.Log($"소울 스킬 사용 가능! ({skillSet.soulSkill.skillName})");
             }
+        }
+
+        // 소울 스킬이라면 소울 게이지 소모
+        if (skillData.soulType == SoulType.soul)
+        {
+            currentSoulGauge = 0f;
+
+            //이후 UI 반짝이기 삭제
+            //
+            //
+            //
+            //
+            //
         }
     }
 
@@ -394,31 +280,17 @@ public class Skill : MonoBehaviour
         // 3. 버프 효과
         if (skillData.HasBuffEffects())
         {
-            ApplyBuffEffects();
+            ProcessEffectList(skillData.buffEffectIds, false);
         }
 
         // 4. 디버프 효과
         if (skillData.HasDebuffEffects())
         {
-            ApplyDebuffEffects();
+            ProcessEffectList(skillData.debuffEffectIds, false);
         }
 
         // 효과 실행 로그
         LogSkillEffects(skillData, result);
-    }
-
-    // 이후 skillData.buffeffectsIds의 아이디로 BeforeAction인지 확인하고 맞으면 실행
-    private void BeforeActionStatusEffect(SkillData skillData)
-    {
-        if (skillData.HasBuffEffects())
-        {
-            ApplyBuffEffects();
-        }
-
-        if (skillData.HasDebuffEffects())
-        {
-            ApplyDebuffEffects();
-        }
     }
 
     private void CalculateStatusEffectAndCollectible(SkillData skillData)
@@ -454,17 +326,17 @@ public class Skill : MonoBehaviour
     // 상태효과 적용
     private void ApplyStatusEffects(SoulType soulType)
     {
-        if (character?.StatusEffect == null) return;
+        if (character?.StatusEffectManager == null) return;
 
-        float damageBonus = character.StatusEffect.CalculateDamageStatusEffects(soulType);
+        float damageBonus = character.StatusEffectManager.CalculateDamageStatusEffects(soulType);
 
         currentDamageMultiplier += damageBonus;
 
-        float healBonus = character.StatusEffect.CalculateHealStatusEffects(soulType);
+        float healBonus = character.StatusEffectManager.CalculateHealStatusEffects(soulType);
 
         currentHealMultiplier += healBonus;
 
-        float soulGaugeBonus = character.StatusEffect.CalculateSoulGaugeStatusEffects(soulType);
+        float soulGaugeBonus = character.StatusEffectManager.CalculateSoulGaugeStatusEffects(soulType);
 
         soulGaugeGenerated += soulGaugeBonus;
     }
@@ -497,13 +369,23 @@ public class Skill : MonoBehaviour
         return finalHeal;
     }
 
-    // 이후 AfterAction, BeforeAction 나눠야함
-    private void ApplyBuffEffects()
+    private void ProcessEffectList(string[] effectIds, bool isBeforeAction)
     {
-    }
-
-    private void ApplyDebuffEffects()
-    {
+        foreach (string effectId in effectIds)
+        {
+            SkillData effectData = SkillDataManager.Instance.GetSkillData(effectId);
+            if (effectData is StatusEffectData statusEffect)
+            {
+                bool canApply = isBeforeAction ? 
+                    (statusEffect.timing == StatusEffectTiming.BeforeAction) :
+                    (statusEffect.timing != StatusEffectTiming.BeforeAction);
+            
+                if (canApply)
+                {
+                    character.StatusEffectManager.ApplyStatusEffect(statusEffect);
+                }
+            }
+        }
     }
 
     // 스킬 효과 로그

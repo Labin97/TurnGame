@@ -8,11 +8,11 @@ public class Character : MonoBehaviour
     private List<SoulPrism> soulPrisms = new List<SoulPrism>();
     private TimeManager timeManager;
     private ItemManager itemManager;
-    private StatusEffectManager statusEffect;
+    private StatusEffectManager statusEffectManager;
     private SkillQueue skillQueue;
 
     public List<SoulPrism> SoulPrisms => soulPrisms;
-    public StatusEffectManager StatusEffect => statusEffect;
+    public StatusEffectManager StatusEffectManager => statusEffectManager;
     public TimeManager TimeManager => timeManager;
     public SkillQueue SkillQueue => skillQueue;
 
