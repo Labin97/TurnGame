@@ -12,6 +12,8 @@ public class SceneSystem : MonoBehaviour
         Lobby,
         GateReady,
         Gate,
+        GateSelection,
+        StageSelection,
         Battle,
         // ...
     }
@@ -46,7 +48,17 @@ public class SceneSystem : MonoBehaviour
             {
                 SceneManager.LoadScene(Const.GateSceneName);
             }
-            break;
+                break;
+            case SceneType.GateSelection:
+                {
+                    SceneManager.LoadScene(Const.GateSelectionSceneName);
+                }
+                break;
+            case SceneType.StageSelection:
+                {
+                    SceneManager.LoadScene(Const.StageSelectionSceneName);
+                }
+                break;
             case SceneType.Battle:
             {
                 SceneManager.LoadScene(Const.BattleSceneName);

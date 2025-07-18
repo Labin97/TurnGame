@@ -8,6 +8,8 @@ public static class Const
     public static string LobbySceneName = "LobbyScene";
     public static string GateReadySceneName = "GateReadyScene";
     public static string GateSceneName = "GateScene";
+    public static string GateSelectionSceneName = "GateSelectionScene";
+    public static string StageSelectionSceneName = "StageSelectionScene";
     public static string BattleSceneName = "BattleScene";
 
     public static string MapDataPath = "Assets/Resources/Data/Json/Region";
