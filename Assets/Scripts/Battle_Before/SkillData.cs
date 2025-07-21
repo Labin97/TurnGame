@@ -46,7 +46,7 @@ public class SkillData
     public float critMultiplier;
 
     [Header("Time Control")]
-    public float timePlus;
+    public float timePlus; // 스킬 사용시 타임 게이지 증가량
     public float timeMinus; // 시간게이지 소모량
 
     [Header("Soul Gauge")]

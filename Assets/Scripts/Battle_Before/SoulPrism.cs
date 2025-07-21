@@ -4,22 +4,15 @@ using UnityEngine;
 
 public class SoulPrism : MonoBehaviour
 {
-    private SoulPrismStats stats;
+    private string SoulPrismName;
     private PersonalityType personalityType;
-    private List<Skill> skills = new List<Skill>();
+    private Skill skill;
 
     public PersonalityType SPPersonalityType => personalityType;
 
     // Start is called before the first frame update
     void Start()
     {
-        stats = GetComponent<SoulPrismStats>();
-        if (stats == null)
-        {
-            Debug.LogError("SoulPrism: SoulPrismStats is null");
-            return;
-        }
-        stats.Initialize();
     }
 
     // Update is called once per frame

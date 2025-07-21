@@ -9,12 +9,10 @@ public class Character : MonoBehaviour
     private TimeManager timeManager;
     private ItemManager itemManager;
     private StatusEffectManager statusEffectManager;
-    private SkillQueue skillQueue;
 
     public List<SoulPrism> SoulPrisms => soulPrisms;
     public StatusEffectManager StatusEffectManager => statusEffectManager;
     public TimeManager TimeManager => timeManager;
-    public SkillQueue SkillQueue => skillQueue;
 
 
     void Start()

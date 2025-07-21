@@ -14,7 +14,7 @@ public class Skill : MonoBehaviour
     private AudioClip normalSkillSound;
     private AnimationClip normalSkillAnimation;
 
-    [Header("SOul Skill Resources")]
+    [Header("Soul Skill Resources")]
     private Sprite soulSkillIcon;
     private AudioClip soulSkillSound;
     private AnimationClip soulSkillAnimation;
