@@ -6,7 +6,7 @@ public class SkillQueue : MonoBehaviour
 {
     private Queue<Skill> skillQueue;
 
-    void Start()
+    void Awake()
     {
         skillQueue = new Queue<Skill>();
     }
@@ -18,37 +18,45 @@ public class SkillQueue : MonoBehaviour
 
     public void ExecuteSkillQueue()
     {
+        if (skillQueue.Count == 0)
+        {
+            SkillQueueNextTurnType();
+        }
+
+        else if (skillQueue.Count > 0)
+        {
+            StartCoroutine(ExecuteSkillQueueCoroutine());
+        }
+    }
+
+    private IEnumerator ExecuteSkillQueueCoroutine()
+    {
         while (skillQueue.Count > 0)
         {
             Skill nextSkill = skillQueue.Dequeue();
             if (BattleSystem.Instance.CurrentTurnType == TurnType.PlayerSkillQueueExecution)
             {
-                PlayerExecuteSkill(nextSkill);
+                yield return StartCoroutine(PlayerExecuteSkill(nextSkill));
             }
             else if (BattleSystem.Instance.CurrentTurnType == TurnType.EnemySkillQueueExecution)
             {
-                EnemyExecuteSkill(nextSkill);
+                yield return StartCoroutine(EnemyExecuteSkill(nextSkill));
             }
         }
 
         if (BattleSystem.Instance.Enemy.CurrentHp == 0 || BattleSystem.Instance.Player.CurrentHp == 0)
         {
             BattleSystem.Instance.CurrentTurnType = TurnType.BattleEnd;
-            return;
+            yield break;
         }
 
-        if (BattleSystem.Instance.CurrentTurnType == TurnType.PlayerSkillQueueExecution)
-        {
-            BattleSystem.Instance.CurrentTurnType = TurnType.EnemyTurnStart;
-        }
-        else if (BattleSystem.Instance.CurrentTurnType == TurnType.EnemySkillQueueExecution)
-        {
-            BattleSystem.Instance.CurrentTurnType = TurnType.PlayerTurnStart;
-        }
+        SkillQueueNextTurnType();
     }
 
-    private void PlayerExecuteSkill(Skill skill)
+    private IEnumerator PlayerExecuteSkill(Skill skill)
     {
+        yield return StartCoroutine(PlaySkillAnimation());
+
         switch (skill.SkillType)
         {
             case SkillType.Attack:
@@ -59,11 +67,15 @@ public class SkillQueue : MonoBehaviour
             case SkillType.Debuff:
                 break;
         }
+
+        BattleSystem.Instance.Player.TimePlus(skill.TimePlus);
         Debug.Log($"Player : skillType: {skill.SkillType}, skillValue: {skill.SkillValue}");
     }
 
-    private void EnemyExecuteSkill(Skill skill)
+    private IEnumerator EnemyExecuteSkill(Skill skill)
     {
+        yield return StartCoroutine(PlaySkillAnimation());
+
         switch (skill.SkillType)
         {
             case SkillType.Attack:
@@ -74,6 +86,25 @@ public class SkillQueue : MonoBehaviour
             case SkillType.Debuff:
                 break;
         }
+
+        BattleSystem.Instance.Player.TimePlus(skill.TimePlus);
         Debug.Log($"Enemy : skillType: {skill.SkillType}, skillValue: {skill.SkillValue}");
+    }
+
+    private IEnumerator PlaySkillAnimation()
+    {
+        yield return new WaitForSeconds(1f);
+    }
+
+    private void SkillQueueNextTurnType()
+    {
+        if (BattleSystem.Instance.CurrentTurnType == TurnType.PlayerSkillQueueExecution)
+        {
+            BattleSystem.Instance.CurrentTurnType = TurnType.EnemyTurnStart;
+        }
+        else if (BattleSystem.Instance.CurrentTurnType == TurnType.EnemySkillQueueExecution)
+        {
+            BattleSystem.Instance.CurrentTurnType = TurnType.PlayerTurnStart;
+        }
     }
 }

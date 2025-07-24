@@ -1,0 +1,43 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public enum SkillType
+{
+    None,
+    Attack,
+    Heal,
+    Buff,
+    Debuff,
+}
+
+public class JsonSkill
+{
+    int id;
+    SkillType skillType;
+    float skillValue;
+}
+
+public class Skill
+{
+    [Header("Base")]
+    private SkillType skillType;
+    private float skillValue;
+
+    [Header("Time Control")]
+    private float timePlus;
+    private float timeMinus;
+
+    public SkillType SkillType => skillType;
+    public float SkillValue => skillValue;
+    public float TimePlus => timePlus;
+    public float TimeMinus => timeMinus;
+
+    public Skill()
+    {
+        skillType = SkillType.Attack;
+        skillValue = 10f;
+        timePlus = 5f;
+        timeMinus = 10f;
+    }
+}

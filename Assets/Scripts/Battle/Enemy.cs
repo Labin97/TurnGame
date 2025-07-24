@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class JsonEnemy
 {
@@ -16,13 +17,15 @@ public class Enemy : MonoBehaviour
 {
     private float maxHp;
     private float currentHp;
+
     private SoulPrismType soulprism;
     private Skill normalSKill;
     private Skill soulSKill;
 
+    public float MaxHp => maxHp;
     public float CurrentHp => currentHp;
 
-    void Start()
+    public void Initialize()
     {
         maxHp = 100f;
         currentHp = maxHp;
@@ -34,7 +37,8 @@ public class Enemy : MonoBehaviour
     public void TakeDamage(float damage)
     {
         currentHp = math.clamp(currentHp - damage, 0, maxHp);
-        Debug.Log($"enemyHp: {currentHp} / {maxHp}");
+
+        BattleUISystem.Instance.UpdateEnemyHpUI(currentHp);
     }
 
     private void UseNormalSkill()

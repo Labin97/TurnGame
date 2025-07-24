@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public enum TurnType
 {
     None,
+    BattleStart,
     PlayerTurnStart,
     PlayerTurnActive,
     PlayerTurnEnd,
@@ -24,10 +26,10 @@ public class BattleSystem : Singleton<BattleSystem>
     [SerializeField] private Enemy enemy;
     private TurnType currentTurnType;
 
-
     public Player Player => player;
     public SkillQueue SkillQueue => skillQueue;
     public Enemy Enemy => enemy;
+
     public TurnType CurrentTurnType
     {
         get => currentTurnType;
@@ -43,7 +45,7 @@ public class BattleSystem : Singleton<BattleSystem>
 
     void Start()
     {
-        CurrentTurnType = TurnType.PlayerTurnStart;
+        CurrentTurnType = TurnType.BattleStart;
     }
 
     private void OnTurnTypeChanged(TurnType newTurnType)
@@ -52,6 +54,9 @@ public class BattleSystem : Singleton<BattleSystem>
 
         switch (newTurnType)
         {
+            case TurnType.BattleStart:
+                BattleStart();
+                break;
             case TurnType.PlayerTurnStart:
                 PlayerTurnStart();
                 break;
@@ -81,6 +86,14 @@ public class BattleSystem : Singleton<BattleSystem>
         }
     }
 
+    private void BattleStart()
+    {
+        player.Initialize();
+        Enemy.Initialize();
+        BattleUISystem.Instance.Initialize();
+        CurrentTurnType = TurnType.PlayerTurnStart;
+    }
+
     private void PlayerTurnStart()
     {
         // My Turn 팝업 표시
@@ -90,6 +103,7 @@ public class BattleSystem : Singleton<BattleSystem>
     private void PlayerTurnActive()
     {
         // 시간 감소
+        StartCoroutine(DecreasePlayerTimeCoroutine());
     }
 
     private void PlayerTurnEnd()
@@ -117,6 +131,22 @@ public class BattleSystem : Singleton<BattleSystem>
     private void EnemyTurnEnd()
     {
         CurrentTurnType = TurnType.EnemySkillQueueExecution;
+    }
+
+    private IEnumerator DecreasePlayerTimeCoroutine()
+    {
+        while (CurrentTurnType == TurnType.PlayerTurnActive)
+        {
+            player.TimeMinus(Time.deltaTime);
+
+            if (player.CurrentTime == 0)
+            {
+                Debug.Log("Finish Time");
+                yield break;
+            }
+            yield return null;
+        }
+        yield break;
     }
 }
 
@@ -155,35 +185,6 @@ public class Hero
     }
 }
 
-public enum SkillType
-{
-    None,
-    Attack,
-    Heal,
-    Buff,
-    Debuff,
-}
 
-public class JsonSkill
-{
-    int id;
-    SkillType skillType;
-    float skillValue;
-}
-
-public class Skill : MonoBehaviour
-{
-    private SkillType skillType;
-    private float skillValue;
-
-    public SkillType SkillType => skillType;
-    public float SkillValue => skillValue;
-
-    public Skill()
-    {
-        skillType = SkillType.Attack;
-        skillValue = 10f;
-    }
-}
 
 
