@@ -4,16 +4,11 @@ using UnityEngine;
 
 public class SkillQueue : Singleton<SkillQueue>
 {
-    private Queue<Skill> skillQueue;
+    private Queue<(int heroIndex, Skill skill)> skillQueue = new Queue<(int heroIndex, Skill skill)>();
 
-    void Awake()
+    public void EnqueueSkill(int heroIndex, Skill skill)
     {
-        skillQueue = new Queue<Skill>();
-    }
-
-    public void EnqueueSkill(Skill skill)
-    {
-        skillQueue.Enqueue(skill);
+        skillQueue.Enqueue((heroIndex, skill));
     }
 
     public void ExecuteSkillQueue()
@@ -33,10 +28,10 @@ public class SkillQueue : Singleton<SkillQueue>
     {
         while (skillQueue.Count > 0)
         {
-            Skill nextSkill = skillQueue.Dequeue();
+            (int heroIndex, Skill nextSkill) = skillQueue.Dequeue();
             if (BattleSystem.Instance.CurrentTurnType == TurnType.PlayerSkillQueueExecution)
             {
-                yield return StartCoroutine(PlayerExecuteSkill(nextSkill));
+                yield return StartCoroutine(PlayerExecuteSkill(heroIndex, nextSkill));
             }
             else if (BattleSystem.Instance.CurrentTurnType == TurnType.EnemySkillQueueExecution)
             {
@@ -53,8 +48,9 @@ public class SkillQueue : Singleton<SkillQueue>
         SkillQueueNextTurnType();
     }
 
-    private IEnumerator PlayerExecuteSkill(Skill skill)
+    private IEnumerator PlayerExecuteSkill(int heroIndex, Skill skill)
     {
+        Player.Instance.SkillCountMinus(heroIndex, skill);
         yield return StartCoroutine(PlaySkillAnimation());
 
         switch (skill.SkillType)
@@ -67,6 +63,7 @@ public class SkillQueue : Singleton<SkillQueue>
             case SkillType.Debuff:
                 break;
         }
+
 
         Player.Instance.TimePlus(skill.TimePlus);
         Debug.Log($"Player : skillType: {skill.SkillType}, skillValue: {skill.SkillValue}");

@@ -78,12 +78,14 @@ public class BattleSystem : Singleton<BattleSystem>
                 SkillQueueExecution();
                 break;
             case TurnType.BattleEnd:
+                BattleEnd();
                 break;
         }
     }
 
     private void BattleStart()
     {
+        // BattleStart 팝업 실행
         Player.Instance.Initialize();
         Enemy.Initialize();
         BattleUISystem.Instance.Initialize();
@@ -127,6 +129,11 @@ public class BattleSystem : Singleton<BattleSystem>
     private void EnemyTurnEnd()
     {
         CurrentTurnType = TurnType.EnemySkillQueueExecution;
+    }
+
+    private void BattleEnd()
+    {
+        //BattleEnd 팝업 실행
     }
 
     private IEnumerator DecreasePlayerTimeCoroutine()

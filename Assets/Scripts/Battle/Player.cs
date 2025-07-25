@@ -5,6 +5,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
 using NUnit.Framework;
+using System;
 
 public class JsonPlayer
 {
@@ -74,8 +75,8 @@ public class Player : Singleton<Player>
 
         SoulGaugePlus(heroIndex);
         TimeMinus(skill.TimeMinus);
-        SkillCountPlus(heroIndex);
-        SkillQueue.Instance.EnqueueSkill(skill);
+        SkillCountPlus(heroIndex, skill);
+        SkillQueue.Instance.EnqueueSkill(heroIndex, skill);
         Debug.Log($"index: {heroIndex}, skill Enqueue");
     }
 
@@ -84,14 +85,15 @@ public class Player : Singleton<Player>
         Hero hero = heros[heroIndex];
         Skill skill = hero.SoulSkill;
 
-        if (currentTime < skill.TimeMinus)
+        if (currentTime < skill.TimeMinus || soulGauges[heroIndex] < hero.NormalSkill.SoulGaugeRequired)
         {
             return;
         }
+
         SoulGaugeMinus(heroIndex);
         TimeMinus(skill.TimeMinus);
-        SkillCountPlus(heroIndex + heros.Length);
-        SkillQueue.Instance.EnqueueSkill(skill);
+        SkillCountPlus(heroIndex, skill);
+        SkillQueue.Instance.EnqueueSkill(heroIndex, skill);
         Debug.Log($"index: {heroIndex}, soulSkill Enqueue");
     }
 
@@ -123,11 +125,46 @@ public class Player : Singleton<Player>
     private void SoulGaugeMinus(int heroIndex)
     {
         soulGauges[heroIndex] = 0f;
+        BattleUISystem.Instance.UpdateSoulGaugeUI(heroIndex, soulGauges[heroIndex]);
     }
 
-    private void SkillCountPlus(int heroIndex)
+    public void SkillCountPlus(int heroIndex, Skill skill)
     {
-        skillCount[heroIndex]++;
-        BattleUISystem.Instance.UpdateSkillCountUI(heroIndex, skillCount[heroIndex]);
+        if (heroIndex < 0) return;
+
+        int checkIndex;
+
+        if (skill.SoulType == SoulType.Normal)
+        {
+            checkIndex = heroIndex;
+        }
+        else
+        {
+            checkIndex = heroIndex + heros.Length;
+        }
+
+        skillCount[checkIndex]++;
+
+        BattleUISystem.Instance.UpdateSkillCountUI(checkIndex, skillCount[checkIndex]);
+    }
+
+    public void SkillCountMinus(int heroIndex, Skill skill)
+    {
+        if (heroIndex < 0) return;
+
+        int checkIndex;
+
+        if (skill.SoulType == SoulType.Normal)
+        {
+            checkIndex = heroIndex;
+        }
+        else
+        {
+            checkIndex = heroIndex + heros.Length;
+        }
+
+        skillCount[checkIndex]--;
+
+        BattleUISystem.Instance.UpdateSkillCountUI(checkIndex, skillCount[checkIndex]);
     }
 }

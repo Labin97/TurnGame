@@ -31,7 +31,7 @@ public class Hero
     public Hero()
     {
         normalSkill = new Skill();
-        soulSkill = new Skill();
+        soulSkill = new Skill(SoulType.Soul);
     }
 }
 

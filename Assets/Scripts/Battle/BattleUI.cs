@@ -2,33 +2,92 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
-// 드래그 구현 필요
-public class BattleUI : MonoBehaviour
+public class BattleUI : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler, IPointerClickHandler
 {
-    public void OnClickSkill(int index)
-    {
-        if (BattleSystem.Instance.CurrentTurnType != TurnType.PlayerTurnActive)
-            return;
+    [Header("UI Setting")]
+    public int skillIndex;
+    public bool isTurnEnd;
 
-        Player.Instance.UseNormalSkill(index);
+    [Header("Canvas")]
+    private Transform canvas;
+    private RectTransform rect;
+    private Image image;
+
+    private GameObject copyBattleUIObject;
+
+    void Awake()
+    {
+        canvas = GetComponentInParent<Canvas>().transform;
+        rect = GetComponent<RectTransform>();
+        image = GetComponent<Image>();
     }
 
-    // 이후 드래그로 변경
-    public void OnDragSKill(int index)
+    void IBeginDragHandler.OnBeginDrag(PointerEventData eventData)
     {
         if (BattleSystem.Instance.CurrentTurnType != TurnType.PlayerTurnActive)
+        {
             return;
+        }
 
-        Player.Instance.UseSoulSkill(index);
+        CreateCopyImage();
     }
 
-    // 이후 드래그로 변경
-    public void TurnEnd()
+    void IDragHandler.OnDrag(PointerEventData eventData)
     {
-        if (BattleSystem.Instance.CurrentTurnType != TurnType.PlayerTurnActive)
-            return;
+        if (copyBattleUIObject != null)
+        {
+            copyBattleUIObject.GetComponent<RectTransform>().position = eventData.position;
+        }
+    }
 
-        BattleSystem.Instance.CurrentTurnType = TurnType.PlayerTurnEnd;
+    void IEndDragHandler.OnEndDrag(PointerEventData eventData)
+    {
+        DestroyCopyImage();
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (BattleSystem.Instance.CurrentTurnType != TurnType.PlayerTurnActive || isTurnEnd)
+        {
+            return;
+        }
+
+        Player.Instance.UseNormalSkill(skillIndex);
+    }
+
+    private void CreateCopyImage()
+    {
+        copyBattleUIObject = new GameObject("CopyBattleUI");
+        copyBattleUIObject.transform.SetParent(canvas);
+        copyBattleUIObject.transform.SetAsLastSibling();
+
+        RectTransform copyRect = copyBattleUIObject.AddComponent<RectTransform>();
+        copyRect.sizeDelta = rect.sizeDelta;
+        copyRect.position = rect.position;
+        copyRect.localScale = rect.localScale;
+
+        if (isTurnEnd) { return; };
+
+        Image copyImage = copyBattleUIObject.AddComponent<Image>();
+        copyImage.sprite = image.sprite;
+        copyImage.color = image.color;
+
+        Color copyImageColor = copyImage.color;
+        copyImageColor.a = 0.6f;
+        copyImage.color = copyImageColor;
+
+        copyImage.raycastTarget = false;
+    }
+
+    private void DestroyCopyImage()
+    {
+        if (copyBattleUIObject != null)
+        {
+            Destroy(copyBattleUIObject);
+            copyBattleUIObject = null;
+        }
     }
 }
