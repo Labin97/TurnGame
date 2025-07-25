@@ -21,13 +21,9 @@ public enum TurnType
 
 public class BattleSystem : Singleton<BattleSystem>
 {
-    [SerializeField] private Player player;
-    [SerializeField] private SkillQueue skillQueue;
     [SerializeField] private Enemy enemy;
     private TurnType currentTurnType;
 
-    public Player Player => player;
-    public SkillQueue SkillQueue => skillQueue;
     public Enemy Enemy => enemy;
 
     public TurnType CurrentTurnType
@@ -88,7 +84,7 @@ public class BattleSystem : Singleton<BattleSystem>
 
     private void BattleStart()
     {
-        player.Initialize();
+        Player.Instance.Initialize();
         Enemy.Initialize();
         BattleUISystem.Instance.Initialize();
         CurrentTurnType = TurnType.PlayerTurnStart;
@@ -113,7 +109,7 @@ public class BattleSystem : Singleton<BattleSystem>
 
     private void SkillQueueExecution()
     {
-        skillQueue.ExecuteSkillQueue();
+        SkillQueue.Instance.ExecuteSkillQueue();
     }
 
     private void EnemyTurnStart()
@@ -137,9 +133,9 @@ public class BattleSystem : Singleton<BattleSystem>
     {
         while (CurrentTurnType == TurnType.PlayerTurnActive)
         {
-            player.TimeMinus(Time.deltaTime);
+            Player.Instance.TimeMinus(Time.deltaTime);
 
-            if (player.CurrentTime == 0)
+            if (Player.Instance.CurrentTime == 0)
             {
                 Debug.Log("Finish Time");
                 yield break;
@@ -149,42 +145,3 @@ public class BattleSystem : Singleton<BattleSystem>
         yield break;
     }
 }
-
-
-
-public enum SoulPrismType
-{
-    ISTJ, ISFJ, INTJ, INFJ,
-    ISTP, ISFP, INTP, INFP,
-    ESTJ, ESFJ, ENTJ, ENFJ,
-    ESTP, ESFP, ENTP, ENFP,
-    None
-}
-
-public class JsonHero
-{
-    string id;
-    SoulPrismType soulPrism;
-    string normalSkillId;
-    string soulSkillId;
-}
-
-public class Hero
-{
-    private SoulPrismType soulPrism;
-    private Skill normalSkill;
-    private Skill soulSkill;
-
-    public Skill NormalSkill => normalSkill;
-    public Skill SoulSkill => soulSkill;
-
-    public Hero()
-    {
-        normalSkill = new Skill();
-        soulSkill = new Skill();
-    }
-}
-
-
-
-

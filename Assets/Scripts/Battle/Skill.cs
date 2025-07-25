@@ -28,10 +28,14 @@ public class Skill
     private float timePlus;
     private float timeMinus;
 
+    [Header("Soul Gauge")]
+    private float soulGaugeRequired;
+
     public SkillType SkillType => skillType;
     public float SkillValue => skillValue;
     public float TimePlus => timePlus;
     public float TimeMinus => timeMinus;
+    public float SoulGaugeRequired => soulGaugeRequired;
 
     public Skill()
     {
@@ -39,5 +43,6 @@ public class Skill
         skillValue = 10f;
         timePlus = 5f;
         timeMinus = 10f;
+        soulGaugeRequired = 5f;
     }
 }

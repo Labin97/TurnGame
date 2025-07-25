@@ -12,7 +12,7 @@ public class JsonPlayer
     int hp;
 }
 
-public class Player : MonoBehaviour
+public class Player : Singleton<Player>
 {
     [Header("Hp")]
     private float maxHp;
@@ -22,24 +22,43 @@ public class Player : MonoBehaviour
     private float maxTime;
     private float currentTime;
 
+    [Header("Heros")]
     private Hero[] heros = new Hero[4];
+
+    [Header("Soul Gauge")]
+    private float[] soulGauges = new float[4];
+
+    [Header("Skill Count")]
+    private int[] skillCount = new int[8];
 
     public float MaxHp => maxHp;
     public float MaxTime => maxTime;
     public float CurrentHp => currentHp;
     public float CurrentTime => currentTime;
+    public Hero[] Heros => heros;
+    public float[] SoulGauges => soulGauges;
 
     public void Initialize()
     {
         maxHp = 100f;
         currentHp = maxHp;
 
-        maxTime = 100f;
+        maxTime = 300f;
         currentTime = maxTime;
 
         for (int i = 0; i < heros.Length; i++)
         {
             heros[i] = new Hero();
+        }
+
+        for (int i = 0; i < soulGauges.Length; i++)
+        {
+            soulGauges[i] = 0f;
+        }
+
+        for (int i = 0; i < skillCount.Length; i++)
+        {
+            skillCount[i] = 0;
         }
     }
 
@@ -53,8 +72,10 @@ public class Player : MonoBehaviour
             return;
         }
 
+        SoulGaugePlus(heroIndex);
         TimeMinus(skill.TimeMinus);
-        BattleSystem.Instance.SkillQueue.EnqueueSkill(skill);
+        SkillCountPlus(heroIndex);
+        SkillQueue.Instance.EnqueueSkill(skill);
         Debug.Log($"index: {heroIndex}, skill Enqueue");
     }
 
@@ -67,9 +88,10 @@ public class Player : MonoBehaviour
         {
             return;
         }
-
+        SoulGaugeMinus(heroIndex);
         TimeMinus(skill.TimeMinus);
-        BattleSystem.Instance.SkillQueue.EnqueueSkill(skill);
+        SkillCountPlus(heroIndex + heros.Length);
+        SkillQueue.Instance.EnqueueSkill(skill);
         Debug.Log($"index: {heroIndex}, soulSkill Enqueue");
     }
 
@@ -90,5 +112,22 @@ public class Player : MonoBehaviour
     {
         currentTime = math.clamp(currentTime - timeMinus, 0, maxTime);
         BattleUISystem.Instance.UpdatePlayerTimeUI(currentTime);
+    }
+
+    private void SoulGaugePlus(int heroIndex)
+    {
+        soulGauges[heroIndex] = math.clamp(soulGauges[heroIndex] + 1, 0, heros[heroIndex].NormalSkill.SoulGaugeRequired);
+        BattleUISystem.Instance.UpdateSoulGaugeUI(heroIndex, soulGauges[heroIndex]);
+    }
+
+    private void SoulGaugeMinus(int heroIndex)
+    {
+        soulGauges[heroIndex] = 0f;
+    }
+
+    private void SkillCountPlus(int heroIndex)
+    {
+        skillCount[heroIndex]++;
+        BattleUISystem.Instance.UpdateSkillCountUI(heroIndex, skillCount[heroIndex]);
     }
 }

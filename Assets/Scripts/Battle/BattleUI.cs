@@ -11,7 +11,7 @@ public class BattleUI : MonoBehaviour
         if (BattleSystem.Instance.CurrentTurnType != TurnType.PlayerTurnActive)
             return;
 
-        BattleSystem.Instance.Player.UseNormalSkill(index);
+        Player.Instance.UseNormalSkill(index);
     }
 
     // 이후 드래그로 변경
@@ -20,7 +20,7 @@ public class BattleUI : MonoBehaviour
         if (BattleSystem.Instance.CurrentTurnType != TurnType.PlayerTurnActive)
             return;
 
-        BattleSystem.Instance.Player.UseSoulSkill(index);
+        Player.Instance.UseSoulSkill(index);
     }
 
     // 이후 드래그로 변경

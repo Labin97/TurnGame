@@ -43,12 +43,12 @@ public class Enemy : MonoBehaviour
 
     private void UseNormalSkill()
     {
-        BattleSystem.Instance.SkillQueue.EnqueueSkill(normalSKill);
+        SkillQueue.Instance.EnqueueSkill(normalSKill);
     }
 
     private void UseSoulSKill()
     {
-        BattleSystem.Instance.SkillQueue.EnqueueSkill(soulSKill);
+        SkillQueue.Instance.EnqueueSkill(soulSKill);
     }
 
     public void ExecuteAIPattern()

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SkillQueue : MonoBehaviour
+public class SkillQueue : Singleton<SkillQueue>
 {
     private Queue<Skill> skillQueue;
 
@@ -44,7 +44,7 @@ public class SkillQueue : MonoBehaviour
             }
         }
 
-        if (BattleSystem.Instance.Enemy.CurrentHp == 0 || BattleSystem.Instance.Player.CurrentHp == 0)
+        if (BattleSystem.Instance.Enemy.CurrentHp == 0 || Player.Instance.CurrentHp == 0)
         {
             BattleSystem.Instance.CurrentTurnType = TurnType.BattleEnd;
             yield break;
@@ -68,7 +68,7 @@ public class SkillQueue : MonoBehaviour
                 break;
         }
 
-        BattleSystem.Instance.Player.TimePlus(skill.TimePlus);
+        Player.Instance.TimePlus(skill.TimePlus);
         Debug.Log($"Player : skillType: {skill.SkillType}, skillValue: {skill.SkillValue}");
     }
 
@@ -79,7 +79,7 @@ public class SkillQueue : MonoBehaviour
         switch (skill.SkillType)
         {
             case SkillType.Attack:
-                BattleSystem.Instance.Player.TakeDamage(skill.SkillValue);
+                Player.Instance.TakeDamage(skill.SkillValue);
                 break;
             case SkillType.Heal:
             case SkillType.Buff:
@@ -87,7 +87,7 @@ public class SkillQueue : MonoBehaviour
                 break;
         }
 
-        BattleSystem.Instance.Player.TimePlus(skill.TimePlus);
+        Player.Instance.TimePlus(skill.TimePlus);
         Debug.Log($"Enemy : skillType: {skill.SkillType}, skillValue: {skill.SkillValue}");
     }
 
