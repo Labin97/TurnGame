@@ -9,8 +9,10 @@ using System;
 
 public class JsonPlayer
 {
-    int id;
-    int hp;
+    public int id;
+    public float hp;
+    public float time;
+    public string[] heroIds;
 }
 
 public class Player : Singleton<Player>
@@ -47,19 +49,12 @@ public class Player : Singleton<Player>
         maxTime = 300f;
         currentTime = maxTime;
 
+        Array.Fill(soulGauges, 0f);
+        Array.Fill(skillCount, 0);
+
         for (int i = 0; i < heros.Length; i++)
         {
             heros[i] = new Hero();
-        }
-
-        for (int i = 0; i < soulGauges.Length; i++)
-        {
-            soulGauges[i] = 0f;
-        }
-
-        for (int i = 0; i < skillCount.Length; i++)
-        {
-            skillCount[i] = 0;
         }
     }
 
@@ -68,7 +63,7 @@ public class Player : Singleton<Player>
         Hero hero = heros[heroIndex];
         Skill skill = hero.NormalSkill;
 
-        if (currentTime < skill.TimeMinus)
+        if (!CanUseSkill(heroIndex, skill))
         {
             return;
         }
@@ -85,7 +80,7 @@ public class Player : Singleton<Player>
         Hero hero = heros[heroIndex];
         Skill skill = hero.SoulSkill;
 
-        if (currentTime < skill.TimeMinus || soulGauges[heroIndex] < hero.NormalSkill.SoulGaugeRequired)
+        if (!CanUseSkill(heroIndex, skill))
         {
             return;
         }
@@ -95,6 +90,19 @@ public class Player : Singleton<Player>
         SkillCountPlus(heroIndex, skill);
         SkillQueue.Instance.EnqueueSkill(heroIndex, skill);
         Debug.Log($"index: {heroIndex}, soulSkill Enqueue");
+    }
+
+    private bool CanUseSkill(int heroIndex, Skill skill)
+    {
+        if (skill.SoulType == SoulType.Normal)
+        {
+            return currentTime >= skill.TimeMinus;
+        }
+        else
+        {
+            return currentTime >= skill.TimeMinus &&
+           soulGauges[heroIndex] >= heros[heroIndex].NormalSkill.SoulGaugeRequired;
+        }
     }
 
     public void TakeDamage(float damage)
@@ -132,39 +140,26 @@ public class Player : Singleton<Player>
     {
         if (heroIndex < 0) return;
 
-        int checkIndex;
+        int index = GetSkillIndex(heroIndex, skill);
 
-        if (skill.SoulType == SoulType.Normal)
-        {
-            checkIndex = heroIndex;
-        }
-        else
-        {
-            checkIndex = heroIndex + heros.Length;
-        }
+        skillCount[index]++;
 
-        skillCount[checkIndex]++;
-
-        BattleUISystem.Instance.UpdateSkillCountUI(checkIndex, skillCount[checkIndex]);
+        BattleUISystem.Instance.UpdateSkillCountUI(index, skillCount[index]);
     }
 
     public void SkillCountMinus(int heroIndex, Skill skill)
     {
         if (heroIndex < 0) return;
 
-        int checkIndex;
+        int index = GetSkillIndex(heroIndex, skill);
 
-        if (skill.SoulType == SoulType.Normal)
-        {
-            checkIndex = heroIndex;
-        }
-        else
-        {
-            checkIndex = heroIndex + heros.Length;
-        }
+        skillCount[index]--;
 
-        skillCount[checkIndex]--;
+        BattleUISystem.Instance.UpdateSkillCountUI(index, skillCount[index]);
+    }
 
-        BattleUISystem.Instance.UpdateSkillCountUI(checkIndex, skillCount[checkIndex]);
+    private int GetSkillIndex(int heroIndex, Skill skill)
+    {
+        return skill.SoulType == SoulType.Normal ? heroIndex : heroIndex + heros.Length;
     }
 }

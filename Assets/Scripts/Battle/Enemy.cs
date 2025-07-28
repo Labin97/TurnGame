@@ -6,14 +6,19 @@ using UnityEngine.UI;
 
 public class JsonEnemy
 {
+    [Header("Base")]
     int id;
     float hp;
+
+    [Header("SoulPrism")]
     SoulPrismType soulPrism;
+
+    [Header("SkillIds")]
     string normalSkillId;
     string soulSkillId;
 }
 
-public class Enemy : MonoBehaviour
+public class Enemy : Singleton<Enemy>
 {
     private float maxHp;
     private float currentHp;
@@ -31,7 +36,7 @@ public class Enemy : MonoBehaviour
         currentHp = maxHp;
 
         normalSKill = new Skill();
-        soulSKill = new Skill();
+        soulSKill = new Skill(SoulType.Soul);
     }
 
     public void TakeDamage(float damage)
@@ -59,3 +64,4 @@ public class Enemy : MonoBehaviour
         UseSoulSKill();
     }
 }
+

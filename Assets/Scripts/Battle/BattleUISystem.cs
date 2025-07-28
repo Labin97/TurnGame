@@ -7,13 +7,26 @@ using UnityEngine.UI;
 public class BattleUISystem : Singleton<BattleUISystem>
 {
     [Header("Slider")]
-    public Slider playerHpSlider;
-    public Slider playerTimeSlider;
-    public Slider enemyHpSlider;
-    public Slider[] soulGaugesSlider;
+    [SerializeField] private Slider playerHpSlider;
+    [SerializeField] private Slider playerTimeSlider;
+    [SerializeField] private Slider enemyHpSlider;
+    [SerializeField] private Slider[] soulGaugesSlider;
 
     [Header("SkillCount")]
-    public TextMeshProUGUI[] skillCountTexts;
+    [SerializeField] private TextMeshProUGUI[] skillCountTexts;
+
+    [Header("Popup Settings")]
+    [SerializeField] private float popupDelayTime = 1f;
+
+    [Header("Popup References")]
+    [SerializeField] private GameObject turnPopupObject;
+    [SerializeField] private Image turnPopupImage;
+
+    [Header("Popup Images")]
+    [SerializeField] private Sprite battleStartImage;
+    [SerializeField] private Sprite playerTurnStartImage;
+    [SerializeField] private Sprite enemyTurnStartImage;
+    [SerializeField] private Sprite battleEndImage;
 
     public void Initialize()
     {
@@ -29,8 +42,8 @@ public class BattleUISystem : Singleton<BattleUISystem>
         }
         if (enemyHpSlider != null)
         {
-            enemyHpSlider.maxValue = BattleSystem.Instance.Enemy.MaxHp;
-            enemyHpSlider.value = BattleSystem.Instance.Enemy.CurrentHp;
+            enemyHpSlider.maxValue = Enemy.Instance.MaxHp;
+            enemyHpSlider.value = Enemy.Instance.CurrentHp;
         }
         if (soulGaugesSlider != null)
         {
@@ -90,5 +103,43 @@ public class BattleUISystem : Singleton<BattleUISystem>
         {
             skillCountTexts[heroIndex].text = count.ToString();
         }
+    }
+
+    public void ShowTurnPopup(TurnType turnType, System.Action onComplete = null)
+    {
+        Sprite targetSprite = GetSpriteForTurnType(turnType);
+        if (targetSprite != null)
+        {
+            StartCoroutine(ShowPopupCoroutine(targetSprite, onComplete));
+        }
+    }
+
+    private Sprite GetSpriteForTurnType(TurnType turnType)
+    {
+        switch (turnType)
+        {
+            case TurnType.BattleStart:
+                return battleStartImage;
+            case TurnType.PlayerTurnStart:
+                return playerTurnStartImage;
+            case TurnType.EnemyTurnStart:
+                return enemyTurnStartImage;
+            case TurnType.BattleEnd:
+                return battleEndImage;
+            default:
+                Debug.LogWarning($"BattleUISystem: Invalid '{turnType}' for Popup");
+                return null;
+        }
+    }
+
+    private IEnumerator ShowPopupCoroutine(Sprite sprite, System.Action onComplete)
+    {
+        turnPopupImage.sprite = sprite;
+        turnPopupObject.SetActive(true);
+
+        yield return new WaitForSeconds(popupDelayTime);
+
+        turnPopupObject.SetActive(false);
+        onComplete?.Invoke();
     }
 }

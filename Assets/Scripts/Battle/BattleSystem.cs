@@ -21,10 +21,7 @@ public enum TurnType
 
 public class BattleSystem : Singleton<BattleSystem>
 {
-    [SerializeField] private Enemy enemy;
     private TurnType currentTurnType;
-
-    public Enemy Enemy => enemy;
 
     public TurnType CurrentTurnType
     {
@@ -80,22 +77,30 @@ public class BattleSystem : Singleton<BattleSystem>
             case TurnType.BattleEnd:
                 BattleEnd();
                 break;
+            default:
+                Debug.LogError($"Unhandled TurnType: {newTurnType}");
+                break;
         }
     }
 
     private void BattleStart()
     {
-        // BattleStart 팝업 실행
         Player.Instance.Initialize();
-        Enemy.Initialize();
+        Enemy.Instance.Initialize();
         BattleUISystem.Instance.Initialize();
-        CurrentTurnType = TurnType.PlayerTurnStart;
+
+        BattleUISystem.Instance.ShowTurnPopup(TurnType.BattleStart, ()=>
+        {
+            CurrentTurnType = TurnType.PlayerTurnStart;
+        });
     }
 
     private void PlayerTurnStart()
     {
-        // My Turn 팝업 표시
-        CurrentTurnType = TurnType.PlayerTurnActive;
+        BattleUISystem.Instance.ShowTurnPopup(TurnType.PlayerTurnStart, ()=>
+        {
+            CurrentTurnType = TurnType.PlayerTurnActive;
+        });
     }
 
     private void PlayerTurnActive()
@@ -116,13 +121,15 @@ public class BattleSystem : Singleton<BattleSystem>
 
     private void EnemyTurnStart()
     {
-        // Enemy Turn 팝업 표시
-        CurrentTurnType = TurnType.EnemyTurnActive;
+        BattleUISystem.Instance.ShowTurnPopup(TurnType.EnemyTurnStart, ()=>
+        {
+            CurrentTurnType = TurnType.EnemyTurnActive;
+        });
     }
 
     private void EnemyTurnActive()
     {
-        Enemy.ExecuteAIPattern();
+        Enemy.Instance.ExecuteAIPattern();
         CurrentTurnType = TurnType.EnemyTurnEnd;
     }
 
@@ -133,7 +140,10 @@ public class BattleSystem : Singleton<BattleSystem>
 
     private void BattleEnd()
     {
-        //BattleEnd 팝업 실행
+        BattleUISystem.Instance.ShowTurnPopup(TurnType.BattleEnd, () =>
+        {
+            Debug.Log("Battle End");
+        });
     }
 
     private IEnumerator DecreasePlayerTimeCoroutine()
@@ -142,7 +152,7 @@ public class BattleSystem : Singleton<BattleSystem>
         {
             Player.Instance.TimeMinus(Time.deltaTime);
 
-            if (Player.Instance.CurrentTime == 0)
+            if (Player.Instance.CurrentTime <= 0)
             {
                 Debug.Log("Finish Time");
                 yield break;
@@ -152,3 +162,4 @@ public class BattleSystem : Singleton<BattleSystem>
         yield break;
     }
 }
+

@@ -65,15 +65,15 @@ public class BattleUI : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDrag
         copyBattleUIObject.transform.SetAsLastSibling();
 
         RectTransform copyRect = copyBattleUIObject.AddComponent<RectTransform>();
-        copyRect.sizeDelta = rect.sizeDelta;
+        copyRect.sizeDelta = rect.rect.size;
         copyRect.position = rect.position;
         copyRect.localScale = rect.localScale;
 
         if (isTurnEnd) { return; };
 
         Image copyImage = copyBattleUIObject.AddComponent<Image>();
-        copyImage.sprite = image.sprite;
         copyImage.color = image.color;
+        copyImage.sprite = image.sprite;
 
         Color copyImageColor = copyImage.color;
         copyImageColor.a = 0.6f;

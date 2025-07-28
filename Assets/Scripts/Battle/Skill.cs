@@ -19,12 +19,19 @@ public enum SoulType
 
 public class JsonSkill
 {
+    [Header("Base")]
     int id;
     SkillType skillType;
-    SoulType soulType;
     float skillValue;
+
+    [Header("Soul Type")]
+    SoulType soulType;
+
+    [Header("Time Control")]
     float timePlus;
     float timeMinus;
+
+    [Header("Soul Gauge")]
     float soulGaugeRequired;
 }
 
@@ -61,13 +68,14 @@ public class Skill
         this.soulGaugeRequired = 5f;
     }
 
+    //임시용, 소울 타입 들어오면 무조건 소울스킬로 인식
     public Skill(SoulType soulType)
     {
         this.skillType = SkillType.Attack;
         this.soulType = soulType;
         this.skillValue = 30f;
         this.timePlus = 5f;
-        this.timeMinus = 10f;
+        this.timeMinus = 0f;
         this.soulGaugeRequired = 5f;
     }
 }
