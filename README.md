@@ -1,4 +1,4 @@
-# ai-game-project
+# TurnGame
 
 https://www.youtube.com/watch?v=uRY1ggtDy3Y
 
